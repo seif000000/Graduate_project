@@ -28,6 +28,12 @@ export const getMedicineAnalytics = () => api.get('/requests/stats/analytics');
 // ─── Profile ──────────────────────────────────────────────────────────────
 export const getMyProfile = () => api.get('/users/me');
 export const updateMyProfile = (data) => api.patch('/users/me', data);
+export const verifyDocuments = (formData) => api.post('/users/me/verify-documents', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+});
+
+// ─── Dashboard ────────────────────────────────────────────────────────────
+export const getDashboardStats = () => api.get('/dashboard/me');
 
 // ─── Medicine & Donations ─────────────────────────────────────────────────
 export const getInventory = (q) => api.get(`/medicine/inventory${q ? `?q=${q}` : ''}`);
@@ -56,5 +62,19 @@ export const submitReport = (data) => api.post('/users/me/report', data);
 
 // ─── Health AI ────────────────────────────────────────────────────────────
 export const askAI = (message) => api.post('/chat/ask', { message });
+
+// ─── Vouchers ─────────────────────────────────────────────────────────────
+export const getMyVouchers = () => api.get('/vouchers/me');
+export const redeemVoucher = (voucherId) => api.post(`/vouchers/redeem/${voucherId}`);
+
+// ─── Medical History ──────────────────────────────────────────────────────
+export const getMedicalReports = () => api.get('/medical-history/reports');
+export const getMedicationLogs = () => api.get('/medical-history/logs');
+export const uploadMedicalReport = (data) => api.post('/medical-history/reports', data);
+
+// ─── Inbox (Chat) ─────────────────────────────────────────────────────────
+export const getInboxChats = () => api.get('/inbox/chats');
+export const getInboxMessages = (userId) => api.get(`/inbox/messages/${userId}`);
+export const sendInboxMessage = (data) => api.post('/inbox/messages', data);
 
 export default api;

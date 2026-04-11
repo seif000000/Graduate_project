@@ -1,24 +1,56 @@
 import { motion } from 'framer-motion';
 import { Search, Send, Image, Paperclip, MoreVertical, Phone, Info, Check, CheckCheck } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { getInboxChats, getInboxMessages, sendInboxMessage } from '../api';
 
 const Inbox = () => {
-  const [activeChat, setActiveChat] = useState(1);
+  const [activeChat, setActiveChat] = useState(null);
   const [message, setMessage] = useState('');
+  const [chats, setChats] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const chats = [
-    { id: 1, name: 'أحمد المتبرع', lastMsg: 'تمام، هسيبلك الدواء في الصيدلية بكرة...', time: '10:30 ص', unread: 2, online: true },
-    { id: 2, name: 'صيدلية الأمل', lastMsg: 'وصلت لنا كمية جديدة من الأنسولين.', time: 'أمس', unread: 0, online: false },
-    { id: 3, name: 'سارة محمد', lastMsg: 'شكراً جداً ليك، الدواء ساعد بابا كتير.', time: 'أمس', unread: 0, online: true },
-    { id: 4, name: 'د. خالد بكر', lastMsg: 'هل محتاج مساعدة في قراءة التحاليل؟', time: 'الاثنين', unread: 0, online: false },
-  ];
+  // Load chats on component mount
+  useEffect(() => {
+    getInboxChats().then(res => {
+      setChats(res.data);
+      if (res.data.length > 0) {
+        setActiveChat(res.data[0].id);
+      }
+    }).catch(err => {
+      console.error(err);
+      toast.error('حدث خطأ في تحميل المحادثات');
+    }).finally(() => {
+      setLoading(false);
+    });
+  }, []);
 
-  const messages = [
-    { id: 1, text: 'أهلاً بك يا أحمد، كنت بسأل عن دواء Glucophage', sender: 'me', time: '09:00 ص', status: 'read' },
-    { id: 2, text: 'أهلاً يا صديقي، الدواء متاح عندي فعلاً وممكن تستلمه في أي وقت.', sender: 'them', time: '09:05 ص' },
-    { id: 3, text: 'تمام، هسيبلك الدواء في صيدلية الأمل اللي في مدينة نصر بكرة الصبح باسمك.', sender: 'them', time: '09:10 ص' },
-    { id: 4, text: 'تسلم جداً، جزاك الله كل خير 🙏', sender: 'me', time: '09:12 ص', status: 'read' },
-  ];
+  // Fetch messages when activeChat changes
+  useEffect(() => {
+    if (activeChat) {
+      getInboxMessages(activeChat).then(res => {
+        setMessages(res.data);
+      }).catch(err => {
+        console.error(err);
+      });
+    }
+  }, [activeChat]);
+
+  // Handle sending message
+  const handleSend = async () => {
+     if (!message.trim() || !activeChat) return;
+     try {
+       const res = await sendInboxMessage({ text: message, receiver_id: activeChat });
+       setMessages(prev => [...prev, res.data]);
+       setMessage('');
+     } catch (err) {
+       console.error(err);
+       toast.error("حدث خطأ أثناء إرسال الرسالة");
+     }
+  };
+
+
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 overflow-hidden" style={{height: 'calc(100vh - 160px)'}} dir="rtl">
@@ -37,7 +69,7 @@ const Inbox = () => {
         </div>
         
         <div className="flex-grow overflow-y-auto divide-y divide-slate-50">
-          {chats.map(chat => (
+          {loading ? <div className="text-center p-6 text-slate-400">جاري التحميل...</div> : chats.map(chat => (
             <div 
               key={chat.id}
               onClick={() => setActiveChat(chat.id)}
@@ -74,15 +106,19 @@ const Inbox = () => {
       <div className="flex-grow flex flex-col glass-card overflow-hidden">
         {/* Chat Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-primary-950 text-white rounded-t-[2.5rem]">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center font-bold text-white text-sm border border-white/10">
-              {chats.find(c => c.id === activeChat)?.name.slice(0, 2)}
+          {activeChat ? (
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center font-bold text-white text-sm border border-white/10">
+                {chats.find(c => c.id === activeChat)?.name?.slice(0, 2)}
+              </div>
+              <div className="text-right">
+                <h4 className="font-black text-lg">{chats.find(c => c.id === activeChat)?.name}</h4>
+                {chats.find(c => c.id === activeChat)?.online && <p className="text-[10px] text-primary-300 font-bold uppercase tracking-widest">متصل الآن 🟢</p>}
+              </div>
             </div>
-            <div className="text-right">
-              <h4 className="font-black text-lg">{chats.find(c => c.id === activeChat)?.name}</h4>
-              <p className="text-[10px] text-primary-300 font-bold uppercase tracking-widest">متصل الآن 🟢</p>
-            </div>
-          </div>
+          ) : (
+            <div>جاري التحميل...</div>
+          )}
           <div className="flex gap-2">
             <button className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"><Phone size={18} /></button>
             <button className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"><MoreVertical size={18} /></button>
@@ -134,10 +170,14 @@ const Inbox = () => {
                 type="text" 
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="اكتب رسالتك هنا..." 
                 className="w-full bg-slate-50 border border-slate-200 h-12 pr-6 pl-12 rounded-xl font-bold text-slate-700 outline-none focus:border-primary-500 transition-all"
               />
-              <button className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-primary-600 text-white rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/30 hover:scale-105 transition-all">
+              <button 
+                onClick={handleSend}
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-primary-600 text-white rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/30 hover:scale-105 transition-all"
+              >
                 <Send size={16} />
               </button>
             </div>

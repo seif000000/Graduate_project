@@ -1,18 +1,28 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Plus, Upload, Search, Download, Trash2, Calendar, FileType, ShieldCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { getMedicalReports, getMedicationLogs } from '../api';
 
 const MedicalHistory = () => {
-  const reports = [
-    { id: 1, name: 'تحليل سكر تراكمي - مختبر البرج', date: '2024-02-10', type: 'PDF', size: '1.2 MB' },
-    { id: 2, name: 'روشتة د. خالد بكر - عيادة الباطنة', date: '2024-03-01', type: 'JPG', size: '2.4 MB' },
-    { id: 3, name: 'تقرير جراحة القلب - مستشفى السلام', date: '2023-11-20', type: 'PDF', size: '4.8 MB' },
-  ];
+  const [reports, setReports] = useState([]);
+  const [medicationLog, setMedicationLog] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const medicationLog = [
-    { date: '20 مارس 2024', med: 'Glucophage 850mg', note: 'صرف مجاني من صيدلية الأمل' },
-    { date: '15 فبراير 2024', med: 'Concor 5mg', note: 'تبرع من المستخدم "أحمد محمود"' },
-    { date: '01 فبراير 2024', med: 'Insulin Glargine', note: 'صرف بخصم 50% من صيدلية الهناء' },
-  ];
+  useEffect(() => {
+    Promise.all([
+      getMedicalReports(),
+      getMedicationLogs()
+    ]).then(([reportsRes, logsRes]) => {
+      setReports(reportsRes.data);
+      setMedicationLog(logsRes.data);
+    }).catch(err => {
+      console.error(err);
+      toast.error('حدث خطأ في تحميل السجل الطبي');
+    }).finally(() => {
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <div className="space-y-8 pb-12" dir="rtl">
@@ -35,7 +45,7 @@ const MedicalHistory = () => {
            <div className="glass-card p-8">
               <h2 className="text-xl font-black text-slate-800 mb-8 border-r-4 border-primary-500 pr-6">مستنداتي المرفوعة</h2>
               <div className="space-y-4">
-                 {reports.map((report, i) => (
+                 {loading ? <div className="text-center text-slate-400">جاري التحميل...</div> : reports.length === 0 ? <div className="text-center text-slate-400">لا يوجد مستندات</div> : reports.map((report, i) => (
                    <motion.div
                      key={report.id}
                      initial={{ opacity: 0, y: 10 }}
@@ -69,7 +79,7 @@ const MedicalHistory = () => {
            <div className="glass-card p-10">
               <h2 className="text-xl font-black text-slate-800 mb-8 border-r-4 border-primary-500 pr-6">سجل العلاج</h2>
               <div className="relative border-r-2 border-slate-100 pr-8 mr-4 space-y-12">
-                 {medicationLog.map((log, i) => (
+                 {loading ? <div className="text-center text-slate-400">جاري التحميل...</div> : medicationLog.length === 0 ? <div className="text-center text-slate-400">لا يوجد سجل</div> : medicationLog.map((log, i) => (
                    <div key={i} className="relative group">
                       <div className="absolute right-[-34px] top-0 w-4 h-4 rounded-full bg-white border-4 border-primary-500 group-hover:bg-primary-500 transition-all" />
                       <div className="text-right space-y-2">

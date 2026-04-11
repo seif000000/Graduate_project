@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Trophy, 
@@ -12,16 +13,35 @@ import {
   TrendingUp,
   Package
 } from 'lucide-react';
+import { getDashboardStats } from '../api';
 
 const Dashboard = () => {
-  const stats = [
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDashboardStats().then(res => {
+      setDashboardData(res.data);
+    }).catch(err => {
+      console.error(err);
+    }).finally(() => {
+      setLoading(false);
+    });
+  }, []);
+
+  const stats = dashboardData ? [
+    { label: 'إجمالي التبرعات', value: dashboardData.stats.total_donations, icon: Package, color: 'text-primary-600', bg: 'bg-primary-50' },
+    { label: 'أرواح ساعدتها', value: dashboardData.stats.lives_saved, icon: Heart, color: 'text-red-600', bg: 'bg-red-50' },
+    { label: 'طلبات استغاثة', value: dashboardData.stats.total_requests, icon: Users, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'مستوى الثقة', value: dashboardData.stats.trust_level, icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
+  ] : [
     { label: 'إجمالي التبرعات', value: '0', icon: Package, color: 'text-primary-600', bg: 'bg-primary-50' },
     { label: 'أرواح ساعدتها', value: '0', icon: Heart, color: 'text-red-600', bg: 'bg-red-50' },
     { label: 'طلبات استغاثة', value: '0', icon: Users, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'مستوى الثقة', value: '%100', icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'مستوى الثقة', value: '%0', icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
   ];
 
-  const recentHistory = [];
+  const recentHistory = dashboardData?.recent_history || [];
 
   return (
     <div className="space-y-8 pb-12" dir="rtl">
@@ -80,7 +100,9 @@ const Dashboard = () => {
             
              <div className="glass-card overflow-hidden">
                 <div className="divide-y divide-slate-50">
-                   {recentHistory.length > 0 ? recentHistory.map((item, i) => (
+                   {loading ? (
+                     <div className="text-center p-8 text-slate-400">جاري التحميل...</div>
+                   ) : recentHistory.length > 0 ? recentHistory.map((item, i) => (
                      <div key={i} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-all group">
                         <div className="flex items-center gap-4 text-right">
                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner ${item.type === 'تبرع' ? 'bg-primary-50 text-primary-600' : 'bg-blue-50 text-blue-600'}`}>
@@ -92,7 +114,7 @@ const Dashboard = () => {
                            </div>
                         </div>
                         <div className="flex items-center gap-4">
-                           <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${item.status === 'تم الاستلام' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                           <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${item.status === 'تم الاستلام' || item.status === 'مكتمل' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                               {item.status}
                            </div>
                            <button className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-all opacity-0 group-hover:opacity-100">

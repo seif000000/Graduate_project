@@ -1,12 +1,26 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, CheckCircle, Clock, MapPin, QrCode, Share2, HelpCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { getMyVouchers } from '../api';
 
 const MyVouchers = () => {
-  const vouchers = [
-    { id: 'VOU-2024-001', pharmacy: 'صيدلية الأمل', med: 'Insulin Glargine', type: 'مجاني', expiry: '2024-04-15', status: 'active' },
-    { id: 'VOU-2024-042', pharmacy: 'صيدلية الهناء', med: 'Glucophage 850mg', type: 'خصم 50%', expiry: '2024-04-10', status: 'active' },
-    { id: 'VOU-2024-015', pharmacy: 'الشركة العربية للدواء', med: 'Concor 5mg', type: 'مجاني', expiry: '2024-03-01', status: 'used' },
-  ];
+  const [vouchers, setVouchers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMyVouchers()
+      .then(res => {
+        setVouchers(res.data);
+      })
+      .catch(err => {
+        console.error("Error fetching vouchers:", err);
+        toast.error('حدث خطأ أثناء تحميل الكوبونات');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div className="space-y-12 pb-12" dir="rtl">
@@ -16,7 +30,11 @@ const MyVouchers = () => {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
-        {vouchers.map((v, i) => (
+        {loading ? (
+           <div className="col-span-2 text-center py-12 text-slate-400 font-bold">جاري التحميل...</div>
+        ) : vouchers.length === 0 ? (
+           <div className="col-span-2 text-center py-12 text-slate-400 font-bold">لا يوجد كوبونات متاحة حالياً.</div>
+        ) : vouchers.map((v, i) => (
           <motion.div
             key={v.id}
             initial={{ opacity: 0, scale: 0.95 }}

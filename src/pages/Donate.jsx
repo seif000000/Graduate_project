@@ -41,6 +41,18 @@ const Donate = () => {
     }).catch(e => console.warn("Location not provided"));
   }, []);
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Create a local URL for the image to display it if needed
+      const imageUrl = URL.createObjectURL(file);
+      // Simulate AI scanning delay then advance to step 2
+      setTimeout(() => {
+        nextStep();
+      }, 1000);
+    }
+  };
+
   const nextStep = () => setStep(s => Math.min(s + 1, totalSteps));
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
@@ -117,18 +129,20 @@ const Donate = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
-                 <button className="aspect-square rounded-3xl border-4 border-dashed border-primary-100 bg-primary-50/30 flex flex-col items-center justify-center gap-4 group hover:bg-primary-50 transition-all">
+                 <label className="cursor-pointer aspect-square rounded-3xl border-4 border-dashed border-primary-100 bg-primary-50/30 flex flex-col items-center justify-center gap-4 group hover:bg-primary-50 transition-all relative overflow-hidden">
+                    <input type="file" accept="image/*" capture="environment" onChange={handleImageUpload} className="hidden" />
                     <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-primary-600 shadow-xl shadow-primary-200/50 group-hover:scale-110 transition-transform">
                        <Camera size={32} />
                     </div>
                     <span className="font-black text-primary-700">فتح الكاميرا للمسح</span>
-                 </button>
-                 <button className="aspect-square rounded-3xl border-4 border-dashed border-slate-100 bg-slate-50/30 flex flex-col items-center justify-center gap-4 group hover:bg-slate-50 transition-all font-bold text-slate-400">
+                 </label>
+                 <label className="cursor-pointer aspect-square rounded-3xl border-4 border-dashed border-slate-100 bg-slate-50/30 flex flex-col items-center justify-center gap-4 group hover:bg-slate-50 transition-all font-bold text-slate-400 relative overflow-hidden">
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-xl shadow-slate-100 transition-transform group-hover:scale-110">
                        <Upload size={32} />
                     </div>
                     <span>ارفع صورة من الجهاز</span>
-                 </button>
+                 </label>
               </div>
 
               <div className="bg-amber-50 p-6 rounded-2xl flex gap-4 text-right border border-amber-100">

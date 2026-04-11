@@ -1,21 +1,44 @@
 import { motion } from 'framer-motion';
 import { ShieldCheck, User, Smartphone, MapPin, Camera, CheckCircle, ArrowRight, ArrowLeft, Upload, FileText } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import toast from 'react-hot-toast';
+import { verifyDocuments } from '../api';
 
 const AccountVerification = () => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDone, setIsDone] = useState(false);
+  const frontInputRef = useRef(null);
+  const backInputRef = useRef(null);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone: '',
+    address: '',
+    front_id: null,
+    back_id: null
+  });
 
   const nextStep = () => setStep(s => s + 1);
   const prevStep = () => setStep(s => s - 1);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsDone(true);
-    }, 2000);
+    const data = new FormData();
+    data.append('full_name', formData.full_name);
+    if (formData.phone) data.append('phone', formData.phone);
+    if (formData.address) data.append('address', formData.address);
+    if (formData.front_id) data.append('front_id', formData.front_id);
+    if (formData.back_id) data.append('back_id', formData.back_id);
+
+    try {
+       await verifyDocuments(data);
+       setIsDone(true);
+    } catch (e) {
+       console.error(e);
+       toast.error("حدث خطأ في رفع المستندات");
+    } finally {
+       setIsSubmitting(false);
+    }
   };
 
   if (isDone) {
@@ -72,15 +95,32 @@ const AccountVerification = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div className="space-y-2 text-right">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">الاسم الرباعي (كما في البطاقة)</label>
-                        <input type="text" className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl font-bold outline-none focus:border-primary-500 transition-all" placeholder="أحمد محمود علي..." />
+                        <input 
+                           type="text" 
+                           value={formData.full_name}
+                           onChange={e => setFormData({...formData, full_name: e.target.value})}
+                           className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl font-bold outline-none focus:border-primary-500 transition-all" 
+                           placeholder="أحمد محمود علي..." 
+                        />
                      </div>
                      <div className="space-y-2 text-right">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">رقم الهاتف المحمول</label>
-                        <input type="tel" className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl font-bold outline-none focus:border-primary-500 transition-all text-left" placeholder="+20 1xx xxxx xxx" />
+                        <input 
+                           type="tel" 
+                           value={formData.phone}
+                           onChange={e => setFormData({...formData, phone: e.target.value})}
+                           className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl font-bold outline-none focus:border-primary-500 transition-all text-left" 
+                           placeholder="+20 1xx xxxx xxx" 
+                        />
                      </div>
                      <div className="md:col-span-2 space-y-2 text-right">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">العنوان بالتفصيل</label>
-                        <textarea className="w-full bg-slate-50 border border-slate-200 min-h-[100px] p-6 rounded-[2rem] font-bold outline-none focus:border-primary-500 transition-all" placeholder="المحافظة، المنطقة، واسم الشارع..." />
+                        <textarea 
+                           value={formData.address}
+                           onChange={e => setFormData({...formData, address: e.target.value})}
+                           className="w-full bg-slate-50 border border-slate-200 min-h-[100px] p-6 rounded-[2rem] font-bold outline-none focus:border-primary-500 transition-all" 
+                           placeholder="المحافظة، المنطقة، واسم الشارع..." 
+                        />
                      </div>
                   </div>
                </div>
@@ -94,19 +134,21 @@ const AccountVerification = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="p-10 rounded-[2.5rem] border-2 border-dashed border-slate-100 bg-slate-50 flex flex-col items-center justify-center text-center gap-6 group hover:border-primary-200 transition-all cursor-pointer">
+                     <div onClick={() => frontInputRef.current?.click()} className={`p-10 rounded-[2.5rem] border-2 border-dashed ${formData.front_id ? 'border-primary-500 bg-primary-50' : 'border-slate-100 bg-slate-50'} flex flex-col items-center justify-center text-center gap-6 group hover:border-primary-200 transition-all cursor-pointer`}>
                         <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-primary-500 shadow-sm transition-transform group-hover:scale-110"><Camera size={40} /></div>
                         <div className="space-y-2">
-                           <p className="font-black text-slate-800">وجه البطاقة الأمامي</p>
-                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">JPG or PNG (Max 5MB)</p>
+                           <p className="font-black text-slate-800">{formData.front_id ? formData.front_id.name : 'وجه البطاقة الأمامي'}</p>
+                           {!formData.front_id && <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">JPG or PNG (Max 5MB)</p>}
                         </div>
+                        <input type="file" ref={frontInputRef} className="hidden" accept="image/*" onChange={e => setFormData({...formData, front_id: e.target.files[0]})} />
                      </div>
-                     <div className="p-10 rounded-[2.5rem] border-2 border-dashed border-slate-100 bg-slate-50 flex flex-col items-center justify-center text-center gap-6 group hover:border-primary-200 transition-all cursor-pointer">
+                     <div onClick={() => backInputRef.current?.click()} className={`p-10 rounded-[2.5rem] border-2 border-dashed ${formData.back_id ? 'border-primary-500 bg-primary-50' : 'border-slate-100 bg-slate-50'} flex flex-col items-center justify-center text-center gap-6 group hover:border-primary-200 transition-all cursor-pointer`}>
                         <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-primary-500 shadow-sm transition-transform group-hover:scale-110"><Camera size={40} /></div>
                         <div className="space-y-2">
-                           <p className="font-black text-slate-800">وجه البطاقة الخلفي</p>
-                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">JPG or PNG (Max 5MB)</p>
+                           <p className="font-black text-slate-800">{formData.back_id ? formData.back_id.name : 'وجه البطاقة الخلفي'}</p>
+                           {!formData.back_id && <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">JPG or PNG (Max 5MB)</p>}
                         </div>
+                        <input type="file" ref={backInputRef} className="hidden" accept="image/*" onChange={e => setFormData({...formData, back_id: e.target.files[0]})} />
                      </div>
                   </div>
 
