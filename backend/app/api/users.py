@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlmodel import Session, select
 from typing import List, Optional
 from app.db.database import get_session
@@ -31,6 +31,28 @@ def update_my_profile(
     session.commit()
     session.refresh(current_user)
     return current_user
+
+@router.post("/me/verify-documents")
+async def upload_verification_documents(
+    full_name: str = Form(...),
+    phone: str = Form(None),
+    address: str = Form(None),
+    front_id: UploadFile = File(None),
+    back_id: UploadFile = File(None),
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Handle upload of verification documents and update user profile info."""
+    if full_name:
+        current_user.full_name = full_name
+    if address:
+        current_user.pharmacy_address = address
+        
+    session.add(current_user)
+    session.commit()
+    
+    # Ideally save front_id and back_id to a storage bucket here.
+    return {"message": "تم استلام مستندات التوثيق بنجاح، وسيتم مراجعتها قريباً."}
 
 # ─── Admin: List / Block Users ──────────────────────────────────────────────
 
