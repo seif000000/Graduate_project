@@ -99,8 +99,8 @@ const Map = () => {
 
   return (
     <div className="h-[calc(100vh-160px)] flex flex-col gap-6" dir="rtl">
-      {/* Search & Stats Overlay */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 shrink-0">
+      {/* Search & Stats Overlay - Lifted to top with z-index */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 shrink-0 relative z-10">
         <div className="lg:col-span-3 glass-card p-4 flex items-center gap-4">
            <div className="flex-grow relative">
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -124,11 +124,11 @@ const Map = () => {
       </div>
 
       {/* Map Content Container */}
-      <div className="flex-grow glass-card relative overflow-hidden bg-slate-100 border-none shadow-inner p-0 rounded-3xl z-0">
+      <div className="flex-grow glass-card relative overflow-hidden bg-slate-100 border-none shadow-inner p-0 rounded-[2rem] z-0">
         <MapContainer 
           center={[userCoords.lat, userCoords.lng]} 
           zoom={13} 
-          style={{ width: '100%', height: '100%' }}
+          className="w-full h-full rounded-[2rem] z-0"
           zoomControl={false}
         >
           <TileLayer
@@ -154,40 +154,50 @@ const Map = () => {
             >
               <Popup>
                 <div className="text-right p-1 text-slate-800 font-cairo" dir="rtl">
-                  <p className={`text-[10px] font-black uppercase tracking-widest leading-none ${med.type === 'طلب عاجل' ? 'text-red-500' : 'text-emerald-500'}`}>{med.type}</p>
+                  <p className={`text-[10px] font-black uppercase tracking-widest leading-none ${med.type === 'طلب عاجل' ? 'text-red-500' : 'text-primary-500'}`}>{med.type}</p>
                   <p className="text-sm font-black mt-1">{med.name}</p>
                 </div>
               </Popup>
             </Marker>
           ))}
+
+          {/* Map Controls (Custom UI overlay inside map area) */}
+          <div className="absolute left-6 top-6 flex flex-col gap-2 z-[400]">
+             <button className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"><ZoomIn size={20} /></button>
+             <button className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"><ZoomOut size={20} /></button>
+             <div className="h-4"></div>
+             <button className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"><Focus size={20} /></button>
+             <button className="w-12 h-12 bg-primary-500 text-white backdrop-blur-md rounded-2xl shadow flex items-center justify-center hover:bg-primary-600 transition-all"><Layers size={20} /></button>
+          </div>
+
+          {/* Legend Overlay */}
+          <div className="absolute bottom-6 left-6 z-[400] bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-white shadow-xl max-w-xs text-right">
+             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">دلائل الخريطة</h4>
+             <div className="space-y-3">
+                <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+                   <div className="w-3 h-3 rounded-full bg-primary-500"></div>
+                   <span>أدوية متوفرة مجاناً</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+                   <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                   <span>حالات استغاثة فورية</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+                   <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                   <span>موقعك الحالي</span>
+                </div>
+             </div>
+          </div>
+
+          {/* Navigation Prompt */}
+          <div className="absolute bottom-6 right-6 z-[400]">
+             <button className="btn-primary gap-3 rounded-full px-8 shadow-2xl h-14 bg-emerald-600 hover:bg-emerald-700">
+                <Navigation size={18} />
+                <span className="font-bold">التتبع الملاحي</span>
+             </button>
+          </div>
+
         </MapContainer>
-
-        {/* Legend Overlay */}
-        <div className="absolute bottom-6 left-6 z-20 bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-white shadow-xl max-w-xs text-right">
-           <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">دلائل الخريطة</h4>
-           <div className="space-y-3">
-              <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
-                 <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                 <span>أدوية متوفرة مجاناً</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
-                 <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                 <span>حالات استغاثة فورية</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
-                 <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                 <span>موقعك الحالي</span>
-              </div>
-           </div>
-        </div>
-
-        {/* Navigation Prompt */}
-        <div className="absolute bottom-6 right-6 z-20">
-           <button className="btn-primary gap-3 rounded-full px-8 shadow-2xl">
-              <Navigation size={18} />
-              ابدأ التتبع الملاحي
-           </button>
-        </div>
       </div>
     </div>
   );
