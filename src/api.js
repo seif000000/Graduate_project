@@ -22,6 +22,8 @@ export const register = (data) => api.post('/auth/register', data);
 export const verifyPharmacy = (userId) => api.post(`/auth/verify-pharmacy/${userId}`);
 export const getUnverifiedPharmacies = () => api.get('/auth/unverified-pharmacies');
 export const getMyRequests = () => api.get('/requests/me');
+export const updateMyRequest = (id, data) => api.patch(`/requests/my-request/${id}`, data);
+export const deleteMyRequest = (id) => api.delete(`/requests/my-request/${id}`);
 export const getAllRequests = () => api.get('/requests/all');
 export const getMedicineAnalytics = () => api.get('/requests/stats/analytics');
 
@@ -38,9 +40,15 @@ export const getDashboardStats = () => api.get('/dashboard/me');
 // ─── Medicine & Donations ─────────────────────────────────────────────────
 export const getInventory = (q) => api.get(`/medicine/inventory${q ? `?q=${q}` : ''}`);
 export const donateMedicine = (data) => api.post('/medicine/donate', data);
+export const getMyDonations = () => api.get('/medicine/me');
+export const updateDonation = (id, data) => api.patch(`/medicine/donation/${id}`, data);
+export const deleteDonation = (id) => api.delete(`/medicine/donation/${id}`);
 
 // ─── Pharmacy Inventory & Stats ───────────────────────────────────────────
 export const getPharmacyInventory = () => api.get('/inventory/pharmacy');
+export const addPharmacyInventory = (data) => api.post('/inventory/pharmacy', data);
+export const updatePharmacyInventory = (id, data) => api.patch(`/inventory/pharmacy/${id}`, data);
+export const deletePharmacyInventory = (id) => api.delete(`/inventory/pharmacy/${id}`);
 export const getNearExpiry = () => api.get('/inventory/near-expiry');
 export const getPharmacyStats = () => api.get('/users/pharmacy/stats');
 

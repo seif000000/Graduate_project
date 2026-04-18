@@ -1,29 +1,66 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Building2, Package, Search, Plus, Filter, MoreVertical, Trash2, Edit, ExternalLink } from 'lucide-react';
-import { getPharmacyInventory } from '../api';
+import { Building2, Package, Search, Plus, Filter, MoreVertical, Trash2, Edit, ExternalLink, X } from 'lucide-react';
+import { getPharmacyInventory, deletePharmacyInventory, addPharmacyInventory } from '../api';
+import toast from 'react-hot-toast';
 
 const PharmacyInventory = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newMedicine, setNewMedicine] = useState({
+    medicine_name: '',
+    generic_name: '',
+    quantity: '',
+    expiry_date: '',
+    batch_info: '',
+    price: 'متوفر'
+  });
+
+  const fetchInventory = async () => {
+    try {
+      const response = await getPharmacyInventory();
+      setInventory(response.data);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInventory = async () => {
-      try {
-        const response = await getPharmacyInventory();
-        setInventory(response.data);
-      } catch (error) {
-        console.error("Error fetching inventory:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchInventory();
   }, []);
 
+  const handleDelete = async (id) => {
+    if (window.confirm('هل أنت متأكد من مسح هذا الصنف من المخزون؟')) {
+      try {
+        await deletePharmacyInventory(id);
+        toast.success('تم الحذف بنجاح');
+        fetchInventory();
+      } catch (e) {
+        toast.error('حدث خطأ أثناء الحذف');
+      }
+    }
+  };
+
+  const handleAddMedicine = async (e) => {
+    e.preventDefault();
+    try {
+      await addPharmacyInventory(newMedicine);
+      toast.success('تمت إضافة الدواء بنجاح');
+      setShowAddForm(false);
+      setNewMedicine({ medicine_name: '', generic_name: '', quantity: '', expiry_date: '', batch_info: '', price: 'متوفر' });
+      fetchInventory();
+    } catch (e) {
+      toast.error('خطأ في إضافة الدواء');
+    }
+  };
+
   const filteredInventory = inventory.filter(item => 
-    item.medicine_name.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.medicine_name || item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.generic_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -37,10 +74,13 @@ const PharmacyInventory = () => {
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">إدارة الأدوية المتوفرة والعقاقير في متناول يدك</p>
         </div>
         <div className="flex gap-4">
-           <button className="btn-primary h-14 px-8 shadow-primary-600/20 gap-3 bg-slate-900 border-slate-900">
-              <Plus size={20} />
-              إضافة دواء جديد
-           </button>
+            <button 
+              onClick={() => setShowAddForm(true)}
+              className="btn-primary h-14 px-8 shadow-primary-600/20 gap-3 bg-slate-900 border-slate-900"
+            >
+               <Plus size={20} />
+               إضافة دواء جديد
+            </button>
         </div>
       </header>
 
@@ -94,7 +134,7 @@ const PharmacyInventory = () => {
                   <h4 className="text-lg font-black text-slate-800">لا يوجد أدوية في المخزون</h4>
                   <p className="text-sm text-slate-400 font-bold">ابدأ بإضافة الأدوية المتوفرة في صيدليتك الآن.</p>
                </div>
-               <button className="btn-primary h-12 px-8 inline-flex">إضافة أول دواء</button>
+               <button onClick={() => setShowAddForm(true)} className="btn-primary h-12 px-8 inline-flex">إضافة أول دواء</button>
             </div>
          ) : (
             <div className="overflow-x-auto">
@@ -132,7 +172,12 @@ const PharmacyInventory = () => {
                            <td className="p-6">
                               <div className="flex items-center justify-center gap-2">
                                  <button className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-primary-600 hover:border-primary-200 transition-all flex items-center justify-center shadow-sm"><Edit size={16} /></button>
-                                 <button className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-red-600 hover:border-red-200 transition-all flex items-center justify-center shadow-sm"><Trash2 size={16} /></button>
+                                 <button 
+                                   onClick={() => handleDelete(item.id)}
+                                   className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-red-600 hover:border-red-200 transition-all flex items-center justify-center shadow-sm"
+                                 >
+                                   <Trash2 size={16} />
+                                 </button>
                               </div>
                            </td>
                         </tr>
@@ -142,6 +187,84 @@ const PharmacyInventory = () => {
             </div>
          )}
       </div>
+
+      {/* Add Form Modal Overlay */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+           <motion.div 
+             initial={{ scale: 0.9, opacity: 0 }}
+             animate={{ scale: 1, opacity: 1 }}
+             className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden"
+           >
+              <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                 <div className="text-right">
+                    <h3 className="text-xl font-black text-slate-800">إضافة صنف جديد</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">قم بتعبئة بيانات الدواء بدقة</p>
+                 </div>
+                 <button onClick={() => setShowAddForm(false)} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-all"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleAddMedicine} className="p-8 space-y-4 text-right">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1 col-span-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">اسم الدواء التجاري</label>
+                       <input 
+                         required
+                         type="text" 
+                         value={newMedicine.medicine_name}
+                         onChange={(e) => setNewMedicine({...newMedicine, medicine_name: e.target.value})}
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         placeholder="مثال: Panadol Advance"
+                       />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">المادة الفعالة</label>
+                       <input 
+                         type="text" 
+                         value={newMedicine.generic_name}
+                         onChange={(e) => setNewMedicine({...newMedicine, generic_name: e.target.value})}
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         placeholder="Paracetamol"
+                       />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">الكمية</label>
+                       <input 
+                         required
+                         type="text" 
+                         value={newMedicine.quantity}
+                         onChange={(e) => setNewMedicine({...newMedicine, quantity: e.target.value})}
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         placeholder="مثال: 5 عبوات"
+                       />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">تاريخ الانتهاء</label>
+                       <input 
+                         required
+                         type="text" 
+                         value={newMedicine.expiry_date}
+                         onChange={(e) => setNewMedicine({...newMedicine, expiry_date: e.target.value})}
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         placeholder="12/2025"
+                       />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">السعر / الحالة</label>
+                       <input 
+                         type="text" 
+                         value={newMedicine.price}
+                         onChange={(e) => setNewMedicine({...newMedicine, price: e.target.value})}
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                       />
+                    </div>
+                 </div>
+                 <div className="pt-6">
+                    <button type="submit" className="w-full h-14 bg-primary-600 text-white font-black rounded-2xl shadow-lg shadow-primary-500/30 hover:bg-primary-700 transition-all">تأكيد الإضافة للمخزون</button>
+                 </div>
+              </form>
+           </motion.div>
+        </div>
+      )}
     </div>
   );
 };

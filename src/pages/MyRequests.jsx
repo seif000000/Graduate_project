@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ListChecks, Clock, CheckCircle, XCircle, Search, Filter, Info, MapPin } from 'lucide-react';
-import { getMyRequests } from '../api';
+import { ListChecks, Clock, CheckCircle, XCircle, Search, Filter, Info, MapPin, Trash2 } from 'lucide-react';
+import { getMyRequests, deleteMyRequest } from '../api';
 
 const MyRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -16,6 +16,17 @@ const MyRequests = () => {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('هل أنت متأكد من رغبتك في حذف هذا الطلب؟')) {
+      try {
+        await deleteMyRequest(id);
+        setRequests(requests.filter(r => r.id !== id));
+      } catch (e) {
+        alert('حدث خطأ أثناء الحذف');
+      }
     }
   };
 
@@ -113,12 +124,20 @@ const MyRequests = () => {
                         <status.icon size={14} />
                         {status.label}
                      </div>
-                     <div className="flex gap-2">
-                        <button className="h-10 px-6 rounded-xl bg-slate-50 text-slate-500 font-bold text-xs hover:bg-slate-100 transition-all">التفاصيل</button>
-                        {(req.status === 'approved' || req.status === 'fulfilled') && (
-                           <button className="h-10 px-6 rounded-xl bg-primary-600 text-white font-black text-xs shadow-lg shadow-primary-500/30">عرض الكوبون</button>
-                        )}
-                     </div>
+                      <div className="flex gap-2">
+                         <button className="h-10 px-6 rounded-xl bg-slate-50 text-slate-500 font-bold text-xs hover:bg-slate-100 transition-all">التفاصيل</button>
+                         {req.status === 'pending' && (
+                            <button 
+                              onClick={() => handleDelete(req.id)}
+                              className="h-10 px-4 rounded-xl bg-red-50 text-red-500 font-bold text-xs hover:bg-red-100 transition-all flex items-center justify-center"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                         )}
+                         {(req.status === 'approved' || req.status === 'fulfilled') && (
+                            <button className="h-10 px-6 rounded-xl bg-primary-600 text-white font-black text-xs shadow-lg shadow-primary-500/30">عرض الكوبون</button>
+                         )}
+                      </div>
                   </div>
                </div>
             </motion.div>

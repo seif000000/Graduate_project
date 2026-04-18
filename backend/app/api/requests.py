@@ -105,3 +105,39 @@ def admin_delete_request(
     session.delete(req)
     session.commit()
     return {"message": "تم حذف الطلب بواسطة الأدمن"}
+
+@router.patch("/my-request/{request_id}")
+def update_my_request(
+    request_id: int,
+    req_update: dict,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Update a request if it belongs to the current user."""
+    db_req = session.get(MedicineRequest, request_id)
+    if not db_req or db_req.requester_id != current_user.id:
+        raise HTTPException(status_code=404, detail="الطلب غير موجود")
+    
+    for key, value in req_update.items():
+        if hasattr(db_req, key):
+            setattr(db_req, key, value)
+    
+    session.add(db_req)
+    session.commit()
+    session.refresh(db_req)
+    return db_req
+
+@router.delete("/my-request/{request_id}")
+def delete_my_request(
+    request_id: int,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Delete a request if it belongs to the current user."""
+    db_req = session.get(MedicineRequest, request_id)
+    if not db_req or db_req.requester_id != current_user.id:
+        raise HTTPException(status_code=404, detail="الطلب غير موجود")
+    
+    session.delete(db_req)
+    session.commit()
+    return {"message": "تم حذف الطلب بنجاح"}

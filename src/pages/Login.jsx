@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, ArrowLeft } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '', // FastAPI uses username for email
@@ -17,19 +19,18 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await login(new URLSearchParams(formData));
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify({
+      const userData = {
         role: response.data.role,
         full_name: response.data.full_name,
         is_verified: response.data.is_verified
-      }));
+      };
+      
+      authLogin(response.data.access_token, userData);
       
       // Role-based redirection
       if (response.data.role === 'admin') navigate('/admin');
-      else if (response.data.role === 'pharmacy') navigate('/dashboard');
+      else if (response.data.role === 'pharmacy') navigate('/pharmacy/inventory');
       else navigate('/');
-      
-      window.location.reload(); // Refresh sidebar/layout
     } catch (error) {
       alert(error.response?.data?.detail || "فشل تسجيل الدخول");
     } finally {

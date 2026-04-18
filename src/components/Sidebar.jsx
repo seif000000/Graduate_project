@@ -45,6 +45,7 @@ const Sidebar = () => {
     { label: 'تبرع بدواء', icon: PlusCircle, path: '/donate', section: 'خدمات اليوزر' },
     { label: 'لوحتي الخاصة', icon: LayoutDashboard, path: '/dashboard', section: 'خدمات اليوزر', roles: ['user', 'admin'] },
     { label: 'طلباتي', icon: ListChecks, path: '/requests', section: 'خدمات اليوزر', roles: ['user', 'admin'] },
+    { label: 'تبرعاتي', icon: Heart, path: '/my-donations', section: 'خدمات اليوزر', roles: ['user', 'admin'] },
     { label: 'السجل الطبي', icon: FileText, path: '/medical-history', section: 'خدمات اليوزر', roles: ['user', 'admin'] },
     { label: 'كوبونات الخصم', icon: Heart, path: '/vouchers', section: 'خدمات اليوزر', roles: ['user', 'admin'] },
 

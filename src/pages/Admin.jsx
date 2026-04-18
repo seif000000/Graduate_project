@@ -46,7 +46,7 @@ const Admin = () => {
       <header className="flex flex-wrap items-center justify-between gap-6">
         <div className="space-y-2 text-right">
           <h1 className="text-4xl font-black text-slate-800 flex items-center gap-4">
-            <ShieldCheck className="text-primary-600" size={40} />
+            <ShieldCheck className="text-red-600" size={40} />
             لوحة الإشراف العليا
           </h1>
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">إدارة الوثائق، توثيق الهويات، ومراقبة المحتوى</p>
@@ -58,10 +58,10 @@ const Admin = () => {
         <div className="lg:col-span-2 space-y-6">
           <div className="glass-card p-6 flex items-center justify-between mb-2">
             <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
-              <Building className="text-primary-500" />
+              <Building className="text-red-500" />
               طلبات توثيق الصيدليات
             </h2>
-            <span className="bg-primary-500 text-white text-[10px] font-black px-3 py-1 rounded-full">{unverifiedPharmacies.length} معلق</span>
+            <span className="bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full">{unverifiedPharmacies.length} معلق</span>
           </div>
 
           <div className="space-y-4">
@@ -88,7 +88,7 @@ const Admin = () => {
                       </button>
                       <button 
                         onClick={() => handleVerify(pharmacy.id)}
-                        className="h-12 px-6 rounded-xl bg-primary-500 text-white font-black text-sm hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/30 flex items-center gap-2"
+                        className="h-12 px-6 rounded-xl bg-red-500 text-white font-black text-sm hover:bg-red-600 transition-all shadow-lg shadow-red-500/30 flex items-center gap-2"
                       >
                          <UserCheck size={16} />
                          توثيق الآن
@@ -125,24 +125,24 @@ const Admin = () => {
                </div>
            </div>
 
-           <div className="glass-card p-8 border-primary-100 bg-primary-50/20">
-              <h3 className="text-base font-black text-primary-900 mb-4 tracking-tight">إحصائيات المنصة</h3>
+           <div className="glass-card p-8 border-red-100 bg-red-50/20">
+              <h3 className="text-base font-black text-red-900 mb-4 tracking-tight">إحصائيات المنصة</h3>
               <div className="space-y-4">
-                 <div className="flex items-center justify-between border-b border-primary-100 pb-3">
+                 <div className="flex items-center justify-between border-b border-red-100 pb-3">
                     <span className="text-xs font-bold text-slate-500">إجمالي المستخدمين</span>
-                    <span className="text-sm font-black text-primary-600">{stats?.total_users || 0}</span>
+                    <span className="text-sm font-black text-red-600">{stats?.total_users || 0}</span>
                  </div>
-                 <div className="flex items-center justify-between border-b border-primary-100 pb-3">
+                 <div className="flex items-center justify-between border-b border-red-100 pb-3">
                     <span className="text-xs font-bold text-slate-500">صيدليات مسجلة</span>
-                    <span className="text-sm font-black text-primary-600">{stats?.total_pharmacies || 0}</span>
+                    <span className="text-sm font-black text-red-600">{stats?.total_pharmacies || 0}</span>
                  </div>
-                 <div className="flex items-center justify-between border-b border-primary-100 pb-3">
+                 <div className="flex items-center justify-between border-b border-red-100 pb-3">
                     <span className="text-xs font-bold text-slate-500">تبرعات مكتملة</span>
-                    <span className="text-sm font-black text-primary-600">{stats?.total_delivered || 0}</span>
+                    <span className="text-sm font-black text-red-600">{stats?.total_delivered || 0}</span>
                  </div>
                  <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-500">نسبة النجاح</span>
-                    <span className="text-sm font-black text-primary-600">{stats?.success_rate || 0}%</span>
+                    <span className="text-sm font-black text-red-600">{stats?.success_rate || 0}%</span>
                  </div>
               </div>
            </div>

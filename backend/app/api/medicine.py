@@ -65,3 +65,61 @@ def get_inventory(q: str = None, session: Session = Depends(get_session)):
             "added_at": d.added_at
         } for d, m in results
     ]
+
+@router.get("/me", response_model=List[dict])
+def get_my_donations(
+    current_user: User = Depends(get_current_active_user), 
+    session: Session = Depends(get_session)
+):
+    """Fetch all donations made by the current user."""
+    statement = select(Donation, Medicine).join(Medicine).where(Donation.donor_id == current_user.id).order_by(Donation.added_at.desc())
+    results = session.exec(statement).all()
+    return [
+        {
+            "id": d.id,
+            "name": m.name,
+            "generic_name": m.generic_name,
+            "quantity": d.quantity,
+            "expiry_date": d.expiry_date,
+            "location": d.location,
+            "status": d.status,
+            "price": d.price,
+            "added_at": d.added_at
+        } for d, m in results
+    ]
+
+@router.patch("/donation/{donation_id}")
+def update_donation(
+    donation_id: int,
+    donation_update: dict,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Update a donation if it belongs to the current user."""
+    db_donation = session.get(Donation, donation_id)
+    if not db_donation or db_donation.donor_id != current_user.id:
+        raise HTTPException(status_code=404, detail="التبرع غير موجود")
+    
+    for key, value in donation_update.items():
+        if hasattr(db_donation, key):
+            setattr(db_donation, key, value)
+    
+    session.add(db_donation)
+    session.commit()
+    session.refresh(db_donation)
+    return db_donation
+
+@router.delete("/donation/{donation_id}")
+def delete_donation(
+    donation_id: int,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """Delete a donation if it belongs to the current user and is still available."""
+    db_donation = session.get(Donation, donation_id)
+    if not db_donation or db_donation.donor_id != current_user.id:
+        raise HTTPException(status_code=404, detail="التبرع غير موجود")
+    
+    session.delete(db_donation)
+    session.commit()
+    return {"message": "تم حذف التبرع بنجاح"}

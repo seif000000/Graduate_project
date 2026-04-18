@@ -1,6 +1,18 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import MainLayout from './components/MainLayout';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Layouts
+import LayoutAdmin from './components/layouts/LayoutAdmin';
+import LayoutPharmacy from './components/layouts/LayoutPharmacy';
+import LayoutUser from './components/layouts/LayoutUser';
+
+// Public Pages
+import Login from './pages/Login';
+import Register from './pages/Register';
+
+// User / Shared Pages
 import Home from './pages/Home';
 import Search from './pages/Search';
 import Donate from './pages/Donate';
@@ -8,67 +20,194 @@ import Map from './pages/Map';
 import Dashboard from './pages/Dashboard';
 import Emergency from './pages/Emergency';
 import HealthAI from './pages/HealthAI';
-import Admin from './pages/Admin';
 import Verification from './pages/Verification';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import PharmacyInventory from './pages/PharmacyInventory';
-import NearExpiry from './pages/NearExpiry';
-import Chatbot from './components/Chatbot';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import Inbox from './pages/Inbox';
 import HelpCenter from './pages/HelpCenter';
-import UsersManagement from './pages/UsersManagement';
-import MedicinesAnalytics from './pages/MedicinesAnalytics';
-import Reports from './pages/Reports';
-import PharmacyStats from './pages/PharmacyStats';
-import PricingControl from './pages/PricingControl';
 import MyRequests from './pages/MyRequests';
 import MedicalHistory from './pages/MedicalHistory';
 import MyVouchers from './pages/MyVouchers';
+import MyDonations from './pages/MyDonations';
 import AccountVerification from './pages/AccountVerification';
 import Community from './pages/Community';
 
+// Admin Pages
+import Admin from './pages/Admin';
+import UsersManagement from './pages/UsersManagement';
+import MedicinesAnalytics from './pages/MedicinesAnalytics';
+import Reports from './pages/Reports';
+
+// Pharmacy Pages
+import PharmacyInventory from './pages/PharmacyInventory';
+import NearExpiry from './pages/NearExpiry';
+import PharmacyStats from './pages/PharmacyStats';
+import PricingControl from './pages/PricingControl';
+
+import Chatbot from './components/Chatbot';
+
+// Helper component to add titles dynamically
 function App() {
   return (
-    <Router>
-      <Toaster position="top-right" reverseOrder={true} />
-      <MainLayout>
+    <AuthProvider>
+      <Router>
+        <Toaster position="top-right" reverseOrder={true} />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/map" element={<Map />} />
-          <Route path="/donate" element={<Donate />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/emergency" element={<Emergency />} />
-          <Route path="/health-ai" element={<HealthAI />} />
-          <Route path="/pharmacy/stats" element={<PharmacyStats />} />
-          <Route path="/pharmacy/pricing" element={<PricingControl />} />
-          <Route path="/requests" element={<MyRequests />} />
-          <Route path="/medical-history" element={<MedicalHistory />} />
-          <Route path="/vouchers" element={<MyVouchers />} />
-          <Route path="/account-verification" element={<AccountVerification />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/inbox" element={<Inbox />} />
-          <Route path="/help-center" element={<HelpCenter />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/users" element={<UsersManagement />} />
-          <Route path="/admin/analytics" element={<MedicinesAnalytics />} />
-          <Route path="/admin/reports" element={<Reports />} />
-          <Route path="/verification" element={<Verification />} />
-          <Route path="/pharmacy-inventory" element={<PharmacyInventory />} />
-          <Route path="/near-expiry" element={<NearExpiry />} />
-          <Route path="/community" element={<Community />} />
+          {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/unauthorized" element={
+            <div className="flex bg-[#FAF9F6] min-h-screen items-center justify-center">
+              <div className="text-center space-y-4">
+                <h1 className="text-6xl font-black text-red-500">403</h1>
+                <p className="text-xl font-bold">غير مصرح لك بالوصول لهذه الصفحة</p>
+                <div className="pt-4">
+                   <button onClick={() => window.history.back()} className="btn-primary px-8">عودة للخلف</button>
+                </div>
+              </div>
+            </div>
+          } />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LayoutAdmin title="لوحة التحكم"><Admin /></LayoutAdmin>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LayoutAdmin title="إدارة المستخدمين"><UsersManagement /></LayoutAdmin>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/analytics" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LayoutAdmin title="إحصائيات الأدوية"><MedicinesAnalytics /></LayoutAdmin>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/reports" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LayoutAdmin title="سجلات النظام والشكاوى"><Reports /></LayoutAdmin>
+            </ProtectedRoute>
+          } />
+
+          {/* Pharmacy Routes */}
+          <Route path="/pharmacy/inventory" element={
+            <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
+              <LayoutPharmacy title="مخزون الصيدلية"><PharmacyInventory /></LayoutPharmacy>
+            </ProtectedRoute>
+          } />
+          <Route path="/pharmacy/near-expiry" element={
+            <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
+              <LayoutPharmacy title="الأدوية قرب الانتهاء"><NearExpiry /></LayoutPharmacy>
+            </ProtectedRoute>
+          } />
+          <Route path="/pharmacy/stats" element={
+            <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
+              <LayoutPharmacy title="إحصائيات الصيدلية"><PharmacyStats /></LayoutPharmacy>
+            </ProtectedRoute>
+          } />
+          <Route path="/pharmacy/pricing" element={
+            <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
+              <LayoutPharmacy title="التحكم في الأسعار"><PricingControl /></LayoutPharmacy>
+            </ProtectedRoute>
+          } />
+
+          {/* Default / User Routes (LayoutUser) */}
+          {/* Note: some pages are public while others are protected for logged-in users only */}
+          
+          {/* Public or shared pages accessible by everyone using LayoutUser  */}
+          <Route path="/" element={<LayoutUser title="الرئيسية"><Home /></LayoutUser>} />
+          <Route path="/search" element={<LayoutUser title="البحث عن دواء"><Search /></LayoutUser>} />
+          <Route path="/map" element={<LayoutUser title="الخريطة التفاعلية"><Map /></LayoutUser>} />
+          <Route path="/help-center" element={<LayoutUser title="مركز المساعدة"><HelpCenter /></LayoutUser>} />
+          
+          {/* Protected User Routes */}
+          <Route path="/donate" element={
+            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+              <LayoutUser title="تبرع بدواء"><Donate /></LayoutUser>
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute allowedRoles={['user', 'admin']}>
+              <LayoutUser title="لوحة المتبرع"><Dashboard /></LayoutUser>
+            </ProtectedRoute>
+          } />
+          <Route path="/emergency" element={
+            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+              <LayoutUser title="طلبات الاستغاثة"><Emergency /></LayoutUser>
+            </ProtectedRoute>
+          } />
+          <Route path="/health-ai" element={
+            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+              <LayoutUser title="مساعد المزمن"><HealthAI /></LayoutUser>
+            </ProtectedRoute>
+          } />
+          <Route path="/verification" element={
+             <ProtectedRoute>
+                <LayoutUser title="دواء مجاني"><Verification /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/account-verification" element={
+             <ProtectedRoute>
+                <LayoutUser title="تحقق الهوية"><AccountVerification /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/requests" element={
+             <ProtectedRoute allowedRoles={['user', 'admin']}>
+                <LayoutUser title="طلباتي"><MyRequests /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/my-donations" element={
+             <ProtectedRoute allowedRoles={['user', 'admin']}>
+                <LayoutUser title="تبرعاتي"><MyDonations /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/vouchers" element={
+             <ProtectedRoute allowedRoles={['user', 'admin']}>
+                <LayoutUser title="كوبونات الخصم"><MyVouchers /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/medical-history" element={
+             <ProtectedRoute allowedRoles={['user', 'admin']}>
+                <LayoutUser title="السجل الطبي"><MedicalHistory /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          
+          <Route path="/profile" element={
+             <ProtectedRoute>
+                <LayoutUser title="الملف الشخصي"><Profile /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+             <ProtectedRoute>
+                <LayoutUser title="الإعدادات"><Settings /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/notifications" element={
+             <ProtectedRoute>
+                <LayoutUser title="الإشعارات"><Notifications /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/inbox" element={
+             <ProtectedRoute>
+                <LayoutUser title="الرسائل"><Inbox /></LayoutUser>
+             </ProtectedRoute>
+          } />
+          <Route path="/community" element={
+             <ProtectedRoute>
+                <LayoutUser title="المجتمع"><Community /></LayoutUser>
+             </ProtectedRoute>
+          } />
+
+          {/* Redirect /pharmacy-inventory to new route */}
+          <Route path="/pharmacy-inventory" element={<Navigate to="/pharmacy/inventory" replace />} />
+          <Route path="/near-expiry" element={<Navigate to="/pharmacy/near-expiry" replace />} />
+          
         </Routes>
-      </MainLayout>
-      <Chatbot />
-    </Router>
+        <Chatbot />
+      </Router>
+    </AuthProvider>
   );
 }
 
