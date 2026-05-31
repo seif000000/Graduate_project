@@ -46,7 +46,7 @@ const PharmacyStats = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="glass-card p-6 flex flex-col gap-4"
+            className="bg-white/70 backdrop-blur-md border border-white shadow-[0_8px_30px_rgba(14,165,233,0.05)] rounded-3xl p-6 flex flex-col gap-4"
           >
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner ${stat.bg} ${stat.color}`}>
               <stat.icon size={28} />
@@ -65,7 +65,7 @@ const PharmacyStats = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Performance Chart Mockup */}
         <section className="lg:col-span-2 space-y-6">
-           <div className="glass-card p-10 h-full">
+           <div className="bg-white/70 backdrop-blur-md border border-white shadow-[0_8px_30px_rgba(14,165,233,0.05)] rounded-3xl p-10 h-full">
               <div className="flex items-center justify-between mb-12">
                  <h2 className="text-xl font-black text-slate-800 border-r-4 border-blue-500 pr-6">مخطط صرف الأدوية الشهري</h2>
                  <div className="flex gap-2">
@@ -95,7 +95,7 @@ const PharmacyStats = () => {
 
         {/* Top Activity / Vouchers */}
         <section className="space-y-6">
-           <div className="glass-card p-8 bg-blue-950 text-white border-0 overflow-hidden relative shadow-xl shadow-blue-900/20">
+           <div className="bg-gradient-to-br from-blue-950 to-cyan-950 text-white rounded-3xl p-8 border border-white/10 overflow-hidden relative shadow-[0_15px_40px_rgba(14,165,233,0.2)]">
               <div className="relative z-10 space-y-6 text-right">
                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl border border-white/20">🎟️</div>
                  <h3 className="text-xl font-black tracking-tight leading-tight">الكوبونات التي تمت معالجتها</h3>
@@ -118,7 +118,7 @@ const PharmacyStats = () => {
               </div>
            </div>
 
-           <div className="glass-card p-8 bg-gradient-to-br from-cyan-50 to-blue-50 border-blue-100">
+           <div className="bg-white/60 backdrop-blur-md p-8 bg-gradient-to-br from-cyan-50/50 to-blue-50/50 border border-white rounded-3xl shadow-[0_8px_30px_rgba(14,165,233,0.05)]">
               <h4 className="text-sm font-black text-blue-900 mb-2 flex items-center gap-2">
                 <Activity size={18} className="text-blue-600" /> التقييم العام للصيدلية
               </h4>

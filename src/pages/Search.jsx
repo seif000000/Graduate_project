@@ -145,7 +145,7 @@ const Search = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
               >
-                <MedicineCard {...item} />
+                <MedicineCard med={item} />
               </motion.div>
             ))}
           </AnimatePresence>

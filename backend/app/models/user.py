@@ -1,6 +1,10 @@
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
+
+if TYPE_CHECKING:
+    from .medicine import Donation
+    from .request import MedicineRequest
 
 class UserBase(SQLModel):
     email: str = Field(unique=True, index=True)
@@ -8,9 +12,11 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_verified: bool = False # For pharmacies
     role: str = "user" # user, admin, pharmacy
+    phone: Optional[str] = None
     pharmacy_license: Optional[str] = None
     pharmacy_address: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    pharmacy_image_url: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.now)
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

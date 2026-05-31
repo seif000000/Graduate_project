@@ -9,9 +9,20 @@ import {
   Heart, 
   AlertTriangle 
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 const Home = () => {
+  const navigate = useNavigate();
+  const [quickSearch, setQuickSearch] = useState('');
+  
+  const handleQuickSearch = () => {
+    if (quickSearch.trim()) {
+      navigate(`/search?q=${encodeURIComponent(quickSearch)}`);
+    } else {
+      navigate('/search');
+    }
+  };
   const stats = [
     { label: 'دواء متاح للتبرع', value: '0', icon: '💊', color: 'text-emerald-600', bg: 'bg-emerald-50', change: 'ابدأ بالتبرع الآن' },
     { label: 'متبرع مسجّل', value: '1', icon: '🤝', color: 'text-amber-600', bg: 'bg-amber-50', change: 'كن جزءاً من التغيير' },
@@ -90,6 +101,9 @@ const Home = () => {
             <input 
               type="text" 
               placeholder="اكتب اسم الدواء العلمي أو التجاري..." 
+              value={quickSearch}
+              onChange={(e) => setQuickSearch(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleQuickSearch()}
               className="w-full bg-slate-50 border border-slate-200 h-14 pr-12 pl-12 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-bold"
             />
             <button className="absolute left-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary-100 text-primary-700 rounded-xl text-xs font-black hover:bg-primary-200 transition-colors">
@@ -101,7 +115,7 @@ const Home = () => {
             <option>القاهرة</option>
             <option>الجيزة</option>
           </select>
-          <button className="btn-primary h-14 px-8 min-w-[120px]">بحث</button>
+          <button onClick={handleQuickSearch} className="btn-primary h-14 px-8 min-w-[120px]">بحث</button>
         </div>
       </section>
 

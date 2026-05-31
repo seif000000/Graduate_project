@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Building2, Mail, Lock, UserPlus, ArrowRight, ShieldCheck, MapPin, FileText } from 'lucide-react';
+import { User, Building2, Mail, Lock, UserPlus, ArrowRight, ShieldCheck, MapPin, FileText, Phone } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../api';
 
@@ -12,6 +12,7 @@ const Register = () => {
     email: '',
     full_name: '',
     password: '',
+    phone: '',
     pharmacy_license: '',
     pharmacy_address: ''
   });
@@ -94,6 +95,17 @@ const Register = () => {
             {role === 'pharmacy' && (
               <>
                 <div className="relative group">
+                  <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
+                  <input 
+                    type="tel" 
+                    placeholder="رقم الهاتف"
+                    required
+                    className="w-full h-14 bg-slate-50 border border-slate-100 pr-12 pl-4 rounded-2xl outline-none focus:border-primary-500 transition-all font-bold text-sm"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  />
+                </div>
+                <div className="relative group">
                   <FileText className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
                   <input 
                     type="text" 
@@ -113,6 +125,16 @@ const Register = () => {
                     className="w-full h-14 bg-slate-50 border border-slate-100 pr-12 pl-4 rounded-2xl outline-none focus:border-primary-500 transition-all font-bold text-sm"
                     value={formData.pharmacy_address}
                     onChange={(e) => setFormData({...formData, pharmacy_address: e.target.value})}
+                  />
+                </div>
+                <div className="relative group">
+                  <FileText className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
+                  <input 
+                    type="url" 
+                    placeholder="رابط صورة الصيدلية (اختياري)"
+                    className="w-full h-14 bg-slate-50 border border-slate-100 pr-12 pl-4 rounded-2xl outline-none focus:border-primary-500 transition-all font-bold text-sm"
+                    value={formData.pharmacy_image_url}
+                    onChange={(e) => setFormData({...formData, pharmacy_image_url: e.target.value})}
                   />
                 </div>
               </>

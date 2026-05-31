@@ -86,15 +86,18 @@ const PharmacyInventory = () => {
 
       {/* Stats Quick View */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="glass-card p-6 border-r-4 border-primary-500">
+         <div className="bg-white/70 backdrop-blur-md shadow-[0_8px_30px_rgba(14,165,233,0.05)] rounded-3xl p-6 border border-white relative overflow-hidden">
+            <div className="absolute right-0 top-0 bottom-0 w-1 bg-cyan-500"></div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">إجمالي الأصناف</p>
             <h3 className="text-3xl font-black text-slate-800">{inventory.length}</h3>
          </div>
-         <div className="glass-card p-6 border-r-4 border-emerald-500">
+         <div className="bg-white/70 backdrop-blur-md shadow-[0_8px_30px_rgba(14,165,233,0.05)] rounded-3xl p-6 border border-white relative overflow-hidden">
+            <div className="absolute right-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">متوفر حالياً</p>
             <h3 className="text-3xl font-black text-emerald-600">{inventory.filter(i => i.quantity !== '0').length}</h3>
          </div>
-         <div className="glass-card p-6 border-r-4 border-amber-500">
+         <div className="bg-white/70 backdrop-blur-md shadow-[0_8px_30px_rgba(14,165,233,0.05)] rounded-3xl p-6 border border-white relative overflow-hidden">
+            <div className="absolute right-0 top-0 bottom-0 w-1 bg-amber-500"></div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">نواقص مطلوبة</p>
             <h3 className="text-3xl font-black text-amber-600">0</h3>
          </div>
@@ -121,7 +124,7 @@ const PharmacyInventory = () => {
       </div>
 
       {/* Inventory Table */}
-      <div className="glass-card overflow-hidden">
+      <div className="bg-white/70 backdrop-blur-md shadow-[0_8px_30px_rgba(14,165,233,0.05)] rounded-3xl border border-white overflow-hidden">
          {loading ? (
             <div className="p-20 text-center flex flex-col items-center gap-4">
                <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
@@ -154,7 +157,7 @@ const PharmacyInventory = () => {
                         <tr key={item.id} className="hover:bg-slate-50/50 transition-all group">
                            <td className="p-6">
                               <div className="flex items-center gap-4">
-                                 <div className="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center font-black">💊</div>
+                                 <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-black">💊</div>
                                  <div>
                                     <p className="font-black text-slate-800">{item.medicine_name}</p>
                                     <p className="text-[10px] text-slate-400 font-bold uppercase truncate max-w-[150px]">{item.batch_info || 'SN: 000-000'}</p>

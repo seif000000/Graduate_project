@@ -21,8 +21,10 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
         full_name=user_in.full_name,
         role=user_in.role,
         is_verified=False if user_in.role == "pharmacy" else True,
+        phone=user_in.phone,
         pharmacy_license=user_in.pharmacy_license if user_in.role == "pharmacy" else None,
         pharmacy_address=user_in.pharmacy_address if user_in.role == "pharmacy" else None,
+        pharmacy_image_url=user_in.pharmacy_image_url if user_in.role == "pharmacy" else None,
         hashed_password=get_password_hash(user_in.password),
     )
     session.add(db_user)

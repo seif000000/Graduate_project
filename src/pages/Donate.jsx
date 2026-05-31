@@ -13,7 +13,8 @@ import {
   MapPin, 
   ShieldCheck,
   Stethoscope,
-  Users
+  Users,
+  PlusCircle
 } from 'lucide-react';
 import { donateMedicine } from '../api';
 import { getCurrentLocation } from '../utils/geolocation';
@@ -316,6 +317,25 @@ const Donate = () => {
                      <h3 className="font-black text-slate-800">التوصيل المباشر للمريض</h3>
                      <p className="text-xs text-slate-400 font-medium leading-relaxed">سنقوم بربطك بمريض في محيطك الجغرافي تم التحقق من حالته الصحية مسبقاً.</p>
                   </button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 5 && (
+            <motion.div 
+              key="step5"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-12 space-y-6"
+            >
+              <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-5xl shadow-xl shadow-emerald-500/10">✨</div>
+              <div className="space-y-2">
+                <h2 className="text-3xl font-black text-slate-800">تم نشر تبرعك بنجاح!</h2>
+                <p className="text-slate-500 max-w-sm mx-auto font-bold">شكراً لكونك سبباً في شفاء إنسان. سيظهر دواءك الآن في نتائج البحث وطلبات الاستغاثة.</p>
+              </div>
+              <div className="flex justify-center gap-4 pt-4">
+                 <button onClick={() => setStep(1)} className="btn-primary h-14 px-8">تبرع بدواء جديد</button>
+                 <button onClick={() => window.location.href = '/dashboard'} className="btn-secondary h-14 px-8">لوحة التحكم</button>
               </div>
             </motion.div>
           )}

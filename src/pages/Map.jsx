@@ -26,6 +26,35 @@ const MapUpdater = ({ coords }) => {
   return null;
 };
 
+const MapActions = ({ userCoords }) => {
+  const map = useMap();
+  
+  return (
+    <div className="absolute left-6 top-6 flex flex-col gap-2 z-[400]">
+       <button 
+         onClick={() => map.zoomIn()}
+         className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"
+       >
+         <ZoomIn size={20} />
+       </button>
+       <button 
+         onClick={() => map.zoomOut()}
+         className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"
+       >
+         <ZoomOut size={20} />
+       </button>
+       <div className="h-4"></div>
+       <button 
+         onClick={() => map.flyTo([userCoords.lat, userCoords.lng], 15)}
+         className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"
+       >
+         <Focus size={20} />
+       </button>
+       <button className="w-12 h-12 bg-primary-500 text-white backdrop-blur-md rounded-2xl shadow flex items-center justify-center hover:bg-primary-600 transition-all"><Layers size={20} /></button>
+    </div>
+  );
+};
+
 const Map = () => {
   const [markers, setMarkers] = useState([]);
   const [userLocation, setUserLocation] = useState('جاري تحديد الموقع...');
@@ -137,6 +166,7 @@ const Map = () => {
           />
           
           <MapUpdater coords={userCoords} />
+          <MapActions userCoords={userCoords} />
 
           {/* User Marker */}
           <Marker position={[userCoords.lat, userCoords.lng]} icon={DefaultIcon}>
@@ -161,16 +191,7 @@ const Map = () => {
             </Marker>
           ))}
 
-          {/* Map Controls (Custom UI overlay inside map area) */}
-          <div className="absolute left-6 top-6 flex flex-col gap-2 z-[400]">
-             <button className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"><ZoomIn size={20} /></button>
-             <button className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"><ZoomOut size={20} /></button>
-             <div className="h-4"></div>
-             <button className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"><Focus size={20} /></button>
-             <button className="w-12 h-12 bg-primary-500 text-white backdrop-blur-md rounded-2xl shadow flex items-center justify-center hover:bg-primary-600 transition-all"><Layers size={20} /></button>
-          </div>
-
-          {/* Legend Overlay */}
+          {/* Item Markers */}
           <div className="absolute bottom-6 left-6 z-[400] bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-white shadow-xl max-w-xs text-right">
              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">دلائل الخريطة</h4>
              <div className="space-y-3">

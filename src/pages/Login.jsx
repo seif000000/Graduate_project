@@ -29,7 +29,10 @@ const Login = () => {
       
       // Role-based redirection
       if (response.data.role === 'admin') navigate('/admin');
-      else if (response.data.role === 'pharmacy') navigate('/pharmacy/inventory');
+      else if (response.data.role === 'pharmacy') {
+         if (!response.data.is_verified) navigate('/account-verification');
+         else navigate('/pharmacy/inventory');
+      }
       else navigate('/');
     } catch (error) {
       alert(error.response?.data?.detail || "فشل تسجيل الدخول");
