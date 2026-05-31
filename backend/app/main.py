@@ -1,9 +1,15 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, medicine, requests, chat, inventory, users, vouchers, medical_history, inbox, dashboard
 from app.db.database import init_db
 
-app = FastAPI(title="Musnad API", description="API for Musnad Medicine Donation Platform")
+@asynccontextmanager
+async def lifespan(app):
+    init_db()
+    yield
+
+app = FastAPI(title="Musnad API", description="API for Musnad Medicine Donation Platform", lifespan=lifespan)
 
 # CORS setup
 app.add_middleware(
@@ -28,9 +34,6 @@ app.include_router(medical_history.router, prefix=f"{API_V1_STR}/medical-history
 app.include_router(inbox.router, prefix=f"{API_V1_STR}/inbox", tags=["inbox"])
 app.include_router(dashboard.router, prefix=f"{API_V1_STR}/dashboard", tags=["dashboard"])
 
-@app.on_event("startup")
-def on_startup():
-    init_db()
 
 @app.get("/")
 def root():

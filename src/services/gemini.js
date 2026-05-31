@@ -1,5 +1,5 @@
 // Dual-mode Gemini: tries direct browser call first, falls back to backend
-const GEMINI_API_KEY = 'AIzaSyBinPjU4F800R_azFDf2nZBa5e6lComOV4';
+const GEMINI_API_KEY = 'AIzaSyByQLje66XyNgB_7acRPrkjEz0SRmyB6cY';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 const SYSTEM_PROMPT =
