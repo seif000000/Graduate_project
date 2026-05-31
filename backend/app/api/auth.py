@@ -34,22 +34,26 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
-    user = session.exec(select(User).where(User.email == form_data.username)).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="الايميل أو كلمة المرور غير صحيحة",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token = create_access_token(subject=user.email)
-    return {
-        "access_token": access_token, 
-        "token_type": "bearer", 
-        "role": user.role, 
-        "full_name": user.full_name,
-        "is_verified": user.is_verified
-    }
+    try:
+        user = session.exec(select(User).where(User.email == form_data.username)).first()
+        if not user or not verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="الايميل أو كلمة المرور غير صحيحة",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        access_token = create_access_token(subject=user.email)
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "role": user.role,
+            "full_name": user.full_name,
+            "is_verified": user.is_verified,
+        }
+    except Exception as e:
+        import sys, traceback
+        traceback.print_exc(file=sys.stderr)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.post("/verify-pharmacy/{user_id}")
 def verify_pharmacy(
