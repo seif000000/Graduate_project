@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Bot, User, Minimize2 } from 'lucide-react';
+import { MessageSquare, Send, X, Bot, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { askAI } from '../api';
-
+import { askGemini } from '../services/gemini';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'bot', content: 'أهلاً بك في منصة مُسند. أنا مساعدك الطبي الذكي المتخصص في السكري وضغط الدم المرتفع. كيف يمكنني مساعدتك اليوم؟' }
+    { role: 'bot', content: 'أهلاً بك في منصة مُسند 💚 أنا مساعدك الطبي الذكي المتخصص في السكري وضغط الدم المرتفع. كيف يمكنني مساعدتك اليوم؟' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -20,7 +19,7 @@ const Chatbot = () => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isTyping) return;
 
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
@@ -28,19 +27,14 @@ const Chatbot = () => {
     setIsTyping(true);
 
     try {
-      const response = await askAI(input);
-      const botResponse = { 
-        role: 'bot', 
-        content: response.data.response
-      };
-      setMessages(prev => [...prev, botResponse]);
+      const text = await askGemini(input);
+      setMessages(prev => [...prev, { role: 'bot', content: text }]);
     } catch (error) {
-      console.error("AI Error:", error);
-      const botResponse = { 
-        role: 'bot', 
-        content: 'عذراً، واجهت مشكلة في الاتصال بنظام الذكاء الاصطناعي. يرجى التأكد من تسجيل الدخول وإعداد مفتاح API بالخلفية.' 
-      };
-      setMessages(prev => [...prev, botResponse]);
+      console.error('Gemini Error:', error);
+      setMessages(prev => [...prev, {
+        role: 'bot',
+        content: 'عذراً، واجهت مشكلة في الاتصال بنظام الذكاء الاصطناعي. يرجى المحاولة مرة أخرى.'
+      }]);
     } finally {
       setIsTyping(false);
     }
@@ -64,7 +58,10 @@ const Chatbot = () => {
                 </div>
                 <div>
                   <h3 className="font-bold">مُسند بوُت</h3>
-                  <p className="text-xs text-primary-100">دائماً في خدمتك</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                    <p className="text-[10px] text-primary-100">متخصص في السكري وضغط الدم</p>
+                  </div>
                 </div>
               </div>
               <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-2 rounded-lg transition-colors">
@@ -76,9 +73,9 @@ const Chatbot = () => {
             <div ref={scrollRef} className="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50">
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                    msg.role === 'user' 
-                      ? 'bg-primary-600 text-white rounded-br-none' 
+                  <div className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap ${
+                    msg.role === 'user'
+                      ? 'bg-primary-600 text-white rounded-br-none'
                       : 'bg-white text-slate-700 rounded-bl-none border border-slate-100'
                   }`}>
                     {msg.content}
@@ -87,10 +84,10 @@ const Chatbot = () => {
               ))}
               {isTyping && (
                 <div className="flex justify-end">
-                  <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-slate-100 flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" />
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                  <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-slate-100 flex gap-1.5 items-center">
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" />
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:0.15s]" />
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:0.3s]" />
                   </div>
                 </div>
               )}
@@ -103,13 +100,15 @@ const Chatbot = () => {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="اسأل عن السكري وضغط الدم..."
-                  className="flex-grow bg-transparent border-none focus:ring-0 text-sm px-2 text-slate-700"
+                  className="flex-grow bg-transparent border-none focus:ring-0 text-sm px-2 text-slate-700 outline-none"
+                  disabled={isTyping}
                 />
-                <button 
+                <button
                   onClick={handleSend}
-                  className="bg-primary-600 text-white p-2 rounded-xl hover:bg-primary-700 transition-colors"
+                  disabled={isTyping}
+                  className="bg-primary-600 text-white p-2 rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50"
                 >
                   <Send size={18} className="rotate-180" />
                 </button>
@@ -121,10 +120,10 @@ const Chatbot = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsOpen(true)}
-            className="w-16 h-16 bg-primary-600 text-white rounded-full shadow-2xl shadow-primary-200 flex items-center justify-center hover:bg-primary-700 transition-all"
+            className="w-16 h-16 bg-primary-600 text-white rounded-full shadow-2xl shadow-primary-200 flex items-center justify-center hover:bg-primary-700 transition-all relative"
           >
             <MessageSquare size={30} />
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full" />
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full animate-pulse" />
           </motion.button>
         )}
       </AnimatePresence>
