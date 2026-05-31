@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, X, Bot, User, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { askAI } from '../api';
+
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'bot', content: 'أهلاً بك في منصة مُسند. أنا مساعدك الذكي، كيف يمكنني مساعدتك في إدارة حالتك الصحية أو الحصول على الدواء؟' }
+    { role: 'bot', content: 'أهلاً بك في منصة مُسند. أنا مساعدك الطبي الذكي المتخصص في السكري وضغط الدم المرتفع. كيف يمكنني مساعدتك اليوم؟' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -25,15 +27,23 @@ const Chatbot = () => {
     setInput('');
     setIsTyping(true);
 
-    // Mock AI Response (Will be replaced with real API call)
-    setTimeout(() => {
+    try {
+      const response = await askAI(input);
       const botResponse = { 
         role: 'bot', 
-        content: 'أتفهم تماماً. بالنسبة لمرضى السكري، من الضروري جداً الالتزام بمواعيد الدواء المحددة. هل تود أن أساعدك في العثور على بدائل متوفرة حالياً في المنصة؟' 
+        content: response.data.response
       };
       setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+      console.error("AI Error:", error);
+      const botResponse = { 
+        role: 'bot', 
+        content: 'عذراً، واجهت مشكلة في الاتصال بنظام الذكاء الاصطناعي. يرجى التأكد من تسجيل الدخول وإعداد مفتاح API بالخلفية.' 
+      };
+      setMessages(prev => [...prev, botResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -94,7 +104,7 @@ const Chatbot = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="اكتب رسالتك هنا..."
+                  placeholder="اسأل عن السكري وضغط الدم..."
                   className="flex-grow bg-transparent border-none focus:ring-0 text-sm px-2 text-slate-700"
                 />
                 <button 

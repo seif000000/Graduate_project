@@ -7,7 +7,7 @@ const HealthAI = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, role: 'ai', text: 'أهلاً بك! أنا مساعدك الصحي الذكي في منصة مسند. كيف يمكنني مساعدتك اليوم؟ يمكنك سؤالي عن بدائل الأدوية، مواعيد الجرعات، أو موانع الاستعمال.', time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) }
+    { id: 1, role: 'ai', text: 'أهلاً بك! أنا مساعدك الطبي الذكي في منصة مسند المتخصص في السكري وضغط الدم المرتفع. كيف يمكنني مساعدتك اليوم؟ يمكنك سؤالي عن الأدوية البديلة، الجرعات المناسبة، أو الاستشارات الصحية الخاصة بمرض السكري وضغط الدم.', time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) }
   ]);
 
   const handleSend = async () => {
@@ -106,7 +106,7 @@ const HealthAI = () => {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="اسأل أي سؤال طبي عن الأدوية..." 
+                    placeholder="اسأل عن السكري وضغط الدم..." 
                     className="w-full bg-slate-50 border border-slate-200 h-16 pr-28 pl-16 rounded-3xl outline-none focus:border-primary-500 focus:ring-8 focus:ring-primary-500/5 transition-all font-bold text-slate-700"
                   />
                   <button 
