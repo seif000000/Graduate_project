@@ -11,7 +11,7 @@ load_dotenv()
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 # Hardcoded fallback key — works on Vercel without needing env var config
-_FALLBACK_KEY = "AQ.Ab8RN6KjatBDdzeWb-FvGCfdkU9R_yaOueAt6tVwzgbBfkJFpQ"
+_FALLBACK_KEY = "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"
 
 SYSTEM_INSTRUCTION = (
     "أنت مساعد طبي ذكي خبير ومتخصص حصرياً في منصة 'مُسند' لمساعدة وإرشاد مرضى السكري وارتفاع ضغط الدم. "
@@ -28,36 +28,35 @@ class ChatMessage(BaseModel):
 @router.post("/ask")
 async def ask_ai(chat_in: ChatMessage, current_user: User = Depends(get_current_active_user)):
     # Use env var if set, fall back to hardcoded key
-    api_key = os.getenv("GEMINI_API_KEY") or _FALLBACK_KEY
+    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY") or _FALLBACK_KEY
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    url = "https://api.openai.com/v1/chat/completions"
 
     payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": f"{SYSTEM_INSTRUCTION}\n\nسؤال المستخدم: {chat_in.message}"}
-                ]
-            }
+        "model": "gpt-4o-mini",
+        "messages": [
+            {"role": "system", "content": SYSTEM_INSTRUCTION},
+            {"role": "user", "content": chat_in.message},
         ],
-        "generationConfig": {
-            "temperature": 0.7,
-            "topK": 40,
-            "topP": 0.95,
-            "maxOutputTokens": 1024,
-        }
+        "temperature": 0.7,
+        "max_tokens": 1024,
+    }
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
     }
 
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(url, json=payload, timeout=30.0)
+            response = await client.post(url, json=payload, headers=headers, timeout=30.0)
             response.raise_for_status()
             data = response.json()
-            gemini_text = data["candidates"][0]["content"]["parts"][0]["text"]
-            return {"response": gemini_text}
+            ai_text = data["choices"][0]["message"]["content"]
+            return {"response": ai_text}
 
     except httpx.HTTPStatusError as e:
-        print(f"Gemini API Error: {e.response.text}")
+        print(f"OpenAI API Error: {e.response.text}")
         raise HTTPException(status_code=e.response.status_code, detail="فشل الاتصال بنظام الذكاء الاصطناعي")
     except Exception as e:
         print(f"Internal Error: {str(e)}")
