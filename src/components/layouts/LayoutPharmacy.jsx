@@ -31,7 +31,7 @@ const LayoutPharmacy = ({ children, title }) => {
       
       {/* Top Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm relative">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_4px_12px_rgba(14,165,233,0.2)] text-white">
               <Building2 size={20} />
@@ -77,7 +77,7 @@ const LayoutPharmacy = ({ children, title }) => {
 
         {/* Sub Header Navigation Strip */}
         <div className="bg-slate-50/50 border-t border-slate-100">
-          <div className="max-w-7xl mx-auto px-6 flex overflow-x-auto scrollbar-hide">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 flex overflow-x-auto scrollbar-hide">
             {pharmacyNav.map(item => {
               const isActive = location.pathname === item.path;
               return (
@@ -100,7 +100,7 @@ const LayoutPharmacy = ({ children, title }) => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-grow max-w-7xl w-full mx-auto px-6 py-8 relative z-10 animate-fade-in">
+      <main className="flex-grow max-w-7xl w-full mx-auto px-4 md:px-6 py-4 md:py-8 relative z-10 animate-fade-in">
         {children}
       </main>
 

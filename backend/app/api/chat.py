@@ -11,7 +11,7 @@ load_dotenv()
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 # Hardcoded fallback key — works on Vercel without needing env var config
-_FALLBACK_KEY = "AIzaSyByQLje66XyNgB_7acRPrkjEz0SRmyB6cY"
+_FALLBACK_KEY = "AQ.Ab8RN6KjatBDdzeWb-FvGCfdkU9R_yaOueAt6tVwzgbBfkJFpQ"
 
 SYSTEM_INSTRUCTION = (
     "أنت مساعد طبي ذكي خبير ومتخصص حصرياً في منصة 'مُسند' لمساعدة وإرشاد مرضى السكري وارتفاع ضغط الدم. "
