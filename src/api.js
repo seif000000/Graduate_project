@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-// Use environment variable, fallback to localhost for development
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// In production (Vercel), backend is on the same domain at /_backend
+// In development, it runs on localhost:8000
+const BASE_URL = import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? '/_backend/api/v1' : 'http://localhost:8000/api/v1');
 
 const api = axios.create({
   baseURL: BASE_URL,
