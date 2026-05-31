@@ -10,32 +10,33 @@ load_dotenv()
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
+# Hardcoded fallback key — works on Vercel without needing env var config
+_FALLBACK_KEY = "AIzaSyBinPjU4F800R_azFDf2nZBa5e6lComOV4"
+
+SYSTEM_INSTRUCTION = (
+    "أنت مساعد طبي ذكي خبير ومتخصص حصرياً في منصة 'مُسند' لمساعدة وإرشاد مرضى السكري وارتفاع ضغط الدم. "
+    "مهمتك هي الإجابة عن الاستفسارات الطبية، توضيح الجرعات ومواعيدها، وتقديم نصائح صحية غذائية وحياتية وبدائل أدوية مخصصة لمرضى السكري والضغط فقط. "
+    "يرجى الالتزام الكامل بتقديم إرشادات لهذين المرضين فقط. "
+    "إذا كانت رسالة المستخدم تتعلق بمرض آخر أو موضوع خارج نطاق السكري أو ضغط الدم، فأجبه بلطف بأنك متخصص فقط في مساعدة مرضى السكري وضغط الدم على منصة مُسند لمساعدتهم بفعالية. "
+    "كن ودوداً جداً، مهنياً، ودقيقاً. "
+    "تذكر دائماً في نهاية إجابتك أن هذه النصائح إرشادية فقط ولا تغني عن استشارة الطبيب المعالج."
+)
+
 class ChatMessage(BaseModel):
     message: str
 
 @router.post("/ask")
 async def ask_ai(chat_in: ChatMessage, current_user: User = Depends(get_current_active_user)):
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return {"response": "عذراً، نظام الذكاء الاصطناعي غير مفعل حالياً. يرجى مراجعة الإعدادات."}
-    
-    # System Instruction: Expert Medical Assistant specializing in Diabetes and Hypertension
-    system_instruction = (
-        "أنت مساعد طبي ذكي خبير ومتخصص حصرياً في منصة 'مُسند' لمساعدة وإرشاد مرضى السكري وارتفاع ضغط الدم. "
-        "مهمتك هي الإجابة عن الاستفسارات الطبية، توضيح الجرعات ومواعيدها، وتقديم نصائح صحية غذائية وحياتية وبدائل أدوية مخصصة لمرضى السكري والضغط فقط. "
-        "يرجى الالتزام الكامل بتقديم إرشادات لهذين المرضين فقط. "
-        "إذا كانت رسالة المستخدم تتعلق بمرض آخر أو موضوع خارج نطاق السكري أو ضغط الدم، فأجبه بلطف بأنك متخصص فقط في مساعدة مرضى السكري وضغط الدم على منصة مُسند لمساعدتهم بفعالية. "
-        "كن ودوداً جداً، مهنياً، ودقيقاً. "
-        "تذكر دائماً في نهاية إجابتك أن هذه النصائح إرشادية فقط ولا تغني عن استشارة الطبيب المعالج."
-    )
+    # Use env var if set, fall back to hardcoded key
+    api_key = os.getenv("GEMINI_API_KEY") or _FALLBACK_KEY
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-    
+
     payload = {
         "contents": [
             {
                 "parts": [
-                    {"text": f"{system_instruction}\n\nسؤال المستخدم: {chat_in.message}"}
+                    {"text": f"{SYSTEM_INSTRUCTION}\n\nسؤال المستخدم: {chat_in.message}"}
                 ]
             }
         ],
@@ -52,11 +53,9 @@ async def ask_ai(chat_in: ChatMessage, current_user: User = Depends(get_current_
             response = await client.post(url, json=payload, timeout=30.0)
             response.raise_for_status()
             data = response.json()
-            
-            # Extract text from Gemini response
             gemini_text = data["candidates"][0]["content"]["parts"][0]["text"]
             return {"response": gemini_text}
-            
+
     except httpx.HTTPStatusError as e:
         print(f"Gemini API Error: {e.response.text}")
         raise HTTPException(status_code=e.response.status_code, detail="فشل الاتصال بنظام الذكاء الاصطناعي")
