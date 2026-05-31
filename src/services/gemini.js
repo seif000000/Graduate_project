@@ -1,6 +1,6 @@
 // Dual-mode Gemini: tries direct browser call first, falls back to backend
 const GEMINI_API_KEY = 'AIzaSyBinPjU4F800R_azFDf2nZBa5e6lComOV4';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 const SYSTEM_PROMPT =
   "أنت مساعد طبي ذكي خبير ومتخصص حصرياً في منصة 'مُسند' لمساعدة وإرشاد مرضى السكري وارتفاع ضغط الدم. " +

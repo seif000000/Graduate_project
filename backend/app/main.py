@@ -20,7 +20,7 @@ API_V1_STR = "/api/v1"
 app.include_router(auth.router, prefix=API_V1_STR)
 app.include_router(medicine.router, prefix=API_V1_STR)
 app.include_router(requests.router, prefix=API_V1_STR)
-app.include_router(chat.router, prefix=f"{API_V1_STR}/chat", tags=["chat"])
+app.include_router(chat.router, prefix=API_V1_STR, tags=["chat"])
 app.include_router(inventory.router, prefix=f"{API_V1_STR}/inventory", tags=["inventory"])
 app.include_router(users.router, prefix=f"{API_V1_STR}/users", tags=["users"])
 app.include_router(vouchers.router, prefix=f"{API_V1_STR}/vouchers", tags=["vouchers"])
