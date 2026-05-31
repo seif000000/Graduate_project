@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, BarChart3, PieChart, Activity, Pill, AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { getMedicineAnalytics } from '../api';
+import { getMedicineAnalytics, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const MedicinesAnalytics = () => {
   const [data, setData] = useState(null);
@@ -14,6 +15,7 @@ const MedicinesAnalytics = () => {
         setData(res.data);
       } catch (e) {
         console.error(e);
+        toast.error(getApiError(e, 'فشل تحميل التحليلات'));
       } finally {
         setLoading(false);
       }

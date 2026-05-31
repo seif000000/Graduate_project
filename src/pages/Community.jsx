@@ -15,7 +15,7 @@ import {
   CheckCircle,
   HelpCircle
 } from 'lucide-react';
-import { getAllRequests } from '../api';
+import { getAllRequests, getApiError } from '../api';
 import { toast } from 'react-hot-toast';
 
 const Community = () => {
@@ -30,6 +30,7 @@ const Community = () => {
         setRequests(res.data);
       } catch (e) {
         console.error(e);
+        toast.error(getApiError(e, 'فشل تحميل طلبات المجتمع'));
       } finally {
         setLoading(false);
       }

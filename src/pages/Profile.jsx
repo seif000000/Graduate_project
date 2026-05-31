@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, MapPin, Camera, Shield, Award, Edit2, Building, Check, X } from 'lucide-react';
-import { getMyProfile, updateMyProfile } from '../api';
+import { getMyProfile, updateMyProfile, getApiError } from '../api';
 import { toast } from 'react-hot-toast';
 
 const Profile = () => {
@@ -15,10 +15,10 @@ const Profile = () => {
       const res = await getMyProfile();
       setUser(res.data);
       setFormData(res.data);
-      // Update local storage to keep sync
       localStorage.setItem('user', JSON.stringify(res.data));
     } catch (e) {
       console.error(e);
+      toast.error(getApiError(e, 'فشل تحميل الملف الشخصي'));
     } finally {
       setLoading(false);
     }
@@ -45,7 +45,7 @@ const Profile = () => {
       });
     } catch (e) {
       console.error(e);
-      toast.error('عذراً، حدث خطأ أثناء التحديث. حاول مرة أخرى 💔');
+      toast.error(getApiError(e, 'عذراً، حدث خطأ أثناء التحديث. حاول مرة أخرى'));
     }
   };
 

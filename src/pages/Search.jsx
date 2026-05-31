@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search as SearchIcon, Filter, MapPin, Grid, List as ListIcon, SlidersHorizontal, Camera, ChevronDown } from 'lucide-react';
 import MedicineCard from '../components/MedicineCard';
-import { getInventory } from '../api';
+import { getInventory, getApiError } from '../api';
+import toast from 'react-hot-toast';
 import { getCurrentLocation, calculateDistance } from '../utils/geolocation';
 
 const Search = () => {
@@ -35,6 +36,7 @@ const Search = () => {
       setResults(meds);
     } catch (error) {
       console.error("Error fetching inventory:", error);
+      toast.error(getApiError(error, 'فشل تحميل نتائج البحث'));
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, MapPin, Clock, Phone, Share2, PlusCircle, ArrowLeft, MessageCircle, Trash2, Send } from 'lucide-react';
-import { getEmergencyBoard, respondToSOS, adminDeleteRequest } from '../api';
+import { getEmergencyBoard, respondToSOS, adminDeleteRequest, createSOSRequest, getApiError } from '../api';
+import toast from 'react-hot-toast';
 import { getCurrentLocation } from '../utils/geolocation';
 
 const Emergency = () => {
@@ -28,6 +29,7 @@ const Emergency = () => {
       setSosRequests(response.data);
     } catch (error) {
       console.error("Error fetching SOS board:", error);
+      toast.error(getApiError(error, 'فشل تحميل طلبات الاستغاثة'));
     } finally {
       setLoading(false);
     }
@@ -48,10 +50,10 @@ const Emergency = () => {
       setShowSOSForm(false);
       setNewSOS({ medicine_name: '', description: '', urgency: 'منخفضة', location: '', latitude: userCoords?.latitude, longitude: userCoords?.longitude });
       fetchSOS();
-      alert("تم نشر استغاثتك بنجاح");
+      toast.success('تم نشر استغاثتك بنجاح');
     } catch (e) {
       console.error(e);
-      alert("فشل نشر الطلب");
+      toast.error(getApiError(e, 'فشل نشر الطلب'));
     }
   };
 
@@ -63,7 +65,7 @@ const Emergency = () => {
       fetchSOS(); // Refresh to see new response
     } catch (e) { 
       console.error(e);
-      alert("حدث خطأ أثناء إرسال الرد");
+      toast.error(getApiError(e, 'حدث خطأ أثناء إرسال الرد'));
     }
   };
 
@@ -72,7 +74,10 @@ const Emergency = () => {
       try {
         await adminDeleteRequest(requestId);
         fetchSOS();
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+        toast.error(getApiError(e, 'فشل حذف الطلب'));
+      }
     }
   };
 

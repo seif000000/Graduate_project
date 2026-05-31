@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Search, Send, Image, Paperclip, MoreVertical, Phone, Info, Check, CheckCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { getInboxChats, getInboxMessages, sendInboxMessage } from '../api';
+import { getInboxChats, getInboxMessages, sendInboxMessage, getApiError } from '../api';
 
 const Inbox = () => {
   const [activeChat, setActiveChat] = useState(null);
@@ -20,7 +20,7 @@ const Inbox = () => {
       }
     }).catch(err => {
       console.error(err);
-      toast.error('حدث خطأ في تحميل المحادثات');
+      toast.error(getApiError(err, 'حدث خطأ في تحميل المحادثات'));
     }).finally(() => {
       setLoading(false);
     });
@@ -33,6 +33,7 @@ const Inbox = () => {
         setMessages(res.data);
       }).catch(err => {
         console.error(err);
+        toast.error(getApiError(err, 'فشل تحميل الرسائل'));
       });
     }
   }, [activeChat]);
@@ -46,7 +47,7 @@ const Inbox = () => {
        setMessage('');
      } catch (err) {
        console.error(err);
-       toast.error("حدث خطأ أثناء إرسال الرسالة");
+       toast.error(getApiError(err, 'حدث خطأ أثناء إرسال الرسالة'));
      }
   };
 

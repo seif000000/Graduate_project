@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ListChecks, AlertTriangle, Clock, Calendar, MessageCircle, ExternalLink, ArrowLeft } from 'lucide-react';
-import { getNearExpiry } from '../api';
+import { getNearExpiry, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const NearExpiry = () => {
   const [medicines, setMedicines] = useState([]);
@@ -14,6 +15,7 @@ const NearExpiry = () => {
         setMedicines(response.data);
       } catch (error) {
         console.error("Error fetching near expiry medicines:", error);
+        toast.error(getApiError(error, 'فشل تحميل الأدوية الراكدة'));
       } finally {
         setLoading(false);
       }

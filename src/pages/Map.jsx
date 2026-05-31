@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Search, Navigation, Layers, Focus, ZoomIn, ZoomOut, ChevronDown } from 'lucide-react';
-import { getInventory, getEmergencyBoard } from '../api';
+import { getInventory, getEmergencyBoard, getApiError } from '../api';
+import toast from 'react-hot-toast';
 import { getCurrentLocation } from '../utils/geolocation';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -76,16 +77,16 @@ const Map = () => {
         
         // Transform some data into map markers (simulated placement for mock map)
         // Adding some random offsets to coordinates for mock testing
-        const meds = invRes.data.slice(0, 3).map((m, i) => ({
-          lat: userCoords.lat + (Math.random() - 0.5) * 0.1,
-          lng: userCoords.lng + (Math.random() - 0.5) * 0.1,
+        const meds = invRes.data.slice(0, 10).map((m) => ({
+          lat: m.latitude ?? userCoords.lat + (Math.random() - 0.5) * 0.05,
+          lng: m.longitude ?? userCoords.lng + (Math.random() - 0.5) * 0.05,
           name: m.name,
           type: 'مجاني'
         }));
 
-        const sos = sosRes.data.slice(0, 2).map((s, i) => ({
-          lat: userCoords.lat + (Math.random() - 0.5) * 0.1,
-          lng: userCoords.lng + (Math.random() - 0.5) * 0.1,
+        const sos = sosRes.data.slice(0, 5).map((s) => ({
+          lat: s.latitude ?? userCoords.lat + (Math.random() - 0.5) * 0.05,
+          lng: s.longitude ?? userCoords.lng + (Math.random() - 0.5) * 0.05,
           name: s.medicine_name,
           type: 'طلب عاجل'
         }));
@@ -93,6 +94,7 @@ const Map = () => {
         setMarkers([...meds, ...sos]);
       } catch (e) {
         console.error("Map data fetch error:", e);
+        toast.error(getApiError(e, 'فشل تحميل بيانات الخريطة'));
       }
     };
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, Heart, AlertTriangle, ShieldCheck, MessageSquare, Trash2, CheckCircle, Info } from 'lucide-react';
-import { getMyNotifications, markNotificationsRead } from '../api';
+import { getMyNotifications, markNotificationsRead, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -13,6 +14,7 @@ const Notifications = () => {
       setNotifications(res.data);
     } catch (e) {
       console.error(e);
+      toast.error(getApiError(e, 'فشل تحميل الإشعارات'));
     } finally {
       setLoading(false);
     }
@@ -28,6 +30,7 @@ const Notifications = () => {
       setNotifications(prev => prev.map(n => ({ ...n, is_new: false })));
     } catch (e) {
       console.error(e);
+      toast.error(getApiError(e, 'فشل تحديث الإشعارات'));
     }
   };
 

@@ -6,7 +6,7 @@ from app.models.medicine import Medicine, Donation
 from app.models.user import User
 from app.api.deps import get_current_active_user
 
-router = APIRouter(prefix="/inventory", tags=["inventory"])
+router = APIRouter(tags=["inventory"])
 
 @router.get("/pharmacy", response_model=List[dict])
 def get_pharmacy_inventory(

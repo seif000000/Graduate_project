@@ -16,7 +16,8 @@ import {
   Users,
   PlusCircle
 } from 'lucide-react';
-import { donateMedicine } from '../api';
+import { donateMedicine, getApiError } from '../api';
+import toast from 'react-hot-toast';
 import { getCurrentLocation } from '../utils/geolocation';
 
 const Donate = () => {
@@ -64,6 +65,7 @@ const Donate = () => {
       setStep(5); // Success state
     } catch (error) {
       console.error("Donation error:", error);
+      toast.error(getApiError(error, 'فشل إرسال التبرع'));
     } finally {
       setIsSubmitting(false);
     }

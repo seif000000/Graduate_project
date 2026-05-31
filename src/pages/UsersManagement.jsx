@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, UserCheck, UserMinus, Search, Filter, MoreVertical, Shield, Building, Heart } from 'lucide-react';
-import { getAllUsers, deleteUser } from '../api';
+import { getAllUsers, deleteUser, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const UsersManagement = () => {
   const [filter, setFilter] = useState('all');
@@ -19,6 +20,7 @@ const UsersManagement = () => {
       setUsers(res.data);
     } catch (e) {
       console.error(e);
+      toast.error(getApiError(e, 'فشل تحميل المستخدمين'));
     } finally {
       setLoading(false);
     }
@@ -33,10 +35,10 @@ const UsersManagement = () => {
     try {
       await deleteUser(userId);
       setUsers(prev => prev.filter(u => u.id !== userId));
-      alert("تم حذف المستخدم بنجاح");
+      toast.success('تم حذف المستخدم بنجاح');
     } catch (e) {
       console.error(e);
-      alert("فشل حذف المستخدم");
+      toast.error(getApiError(e, 'فشل حذف المستخدم'));
     }
   };
 

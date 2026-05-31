@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, MessageCircle, MoreVertical, Trash2, CheckCircle, ShieldAlert, UserX, Clock } from 'lucide-react';
-import { getAdminReports } from '../api';
+import { getAdminReports, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const Reports = () => {
   const [reports, setReports] = useState([]);
@@ -14,6 +15,7 @@ const Reports = () => {
         setReports(res.data);
       } catch (e) {
         console.error(e);
+        toast.error(getApiError(e, 'فشل تحميل البلاغات'));
       } finally {
         setLoading(false);
       }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ListChecks, Clock, CheckCircle, XCircle, Search, Filter, Info, MapPin, Trash2 } from 'lucide-react';
-import { getMyRequests, deleteMyRequest } from '../api';
+import { getMyRequests, deleteMyRequest, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const MyRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -14,6 +15,7 @@ const MyRequests = () => {
       setRequests(res.data);
     } catch (e) {
       console.error(e);
+      toast.error(getApiError(e, 'فشل تحميل الطلبات'));
     } finally {
       setLoading(false);
     }
@@ -25,7 +27,7 @@ const MyRequests = () => {
         await deleteMyRequest(id);
         setRequests(requests.filter(r => r.id !== id));
       } catch (e) {
-        alert('حدث خطأ أثناء الحذف');
+        toast.error(getApiError(e, 'حدث خطأ أثناء الحذف'));
       }
     }
   };

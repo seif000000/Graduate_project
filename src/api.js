@@ -9,7 +9,14 @@ const api = axios.create({
   baseURL: BASE_URL,
 });
 
-// Add interceptor for JWT
+export function getApiError(error, fallback = 'حدث خطأ غير متوقع') {
+  const detail = error?.response?.data?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) return detail.map((d) => d.msg || d).join(', ');
+  return error?.response?.data?.message || error?.message || fallback;
+}
+
+// Attach JWT to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -17,6 +24,23 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Handle expired sessions globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const url = error.config?.url || '';
+    const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register');
+    if (error.response?.status === 401 && !isAuthRoute && localStorage.getItem('token')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ─── Auth ─────────────────────────────────────────────────────────────────
 export const login = (data) => api.post('/auth/login', data);
@@ -61,7 +85,7 @@ export const respondToSOS = (requestId, message) =>
   api.post(`/requests/respond/${requestId}?message=${encodeURIComponent(message)}`);
 
 // ─── Admin ────────────────────────────────────────────────────────────────
-export const getAllUsers = (role) => api.get(`/users/${role ? `?role=${role}` : ''}`);
+export const getAllUsers = (role) => api.get('/users', { params: role ? { role } : {} });
 export const deleteUser = (userId) => api.delete(`/users/${userId}`);
 export const adminDeleteRequest = (requestId) => api.delete(`/requests/admin/request/${requestId}`);
 export const getAdminStats = () => api.get('/users/admin/stats');

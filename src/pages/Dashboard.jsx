@@ -5,7 +5,8 @@ import {
   Package, Search, PlusCircle, AlertCircle, ArrowLeft
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getDashboardStats } from '../api';
+import { getDashboardStats, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -16,6 +17,7 @@ const Dashboard = () => {
       setDashboardData(res.data);
     }).catch(err => {
       console.error(err);
+      toast.error(getApiError(err, 'فشل تحميل لوحة التحكم'));
     }).finally(() => {
       setLoading(false);
     });

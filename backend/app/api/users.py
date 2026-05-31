@@ -8,7 +8,7 @@ from app.models.notification import Notification
 from app.models.report import UserReport
 from app.api.deps import get_current_active_user, get_current_admin
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["users"])
 
 # ─── Profile ───────────────────────────────────────────────────────────────
 

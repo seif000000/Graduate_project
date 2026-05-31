@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Building2, Package, Search, Plus, Filter, MoreVertical, Trash2, Edit, ExternalLink, X } from 'lucide-react';
-import { getPharmacyInventory, deletePharmacyInventory, addPharmacyInventory } from '../api';
+import { getPharmacyInventory, deletePharmacyInventory, addPharmacyInventory, getApiError } from '../api';
 import toast from 'react-hot-toast';
 
 const PharmacyInventory = () => {
@@ -24,6 +24,7 @@ const PharmacyInventory = () => {
       setInventory(response.data);
     } catch (error) {
       console.error("Error fetching inventory:", error);
+      toast.error(getApiError(error, 'فشل تحميل المخزون'));
     } finally {
       setLoading(false);
     }

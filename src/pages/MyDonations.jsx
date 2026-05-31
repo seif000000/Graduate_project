@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Package, Clock, CheckCircle, XCircle, Trash2, MapPin, Search } from 'lucide-react';
-import { getMyDonations, deleteDonation } from '../api';
+import { getMyDonations, deleteDonation, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const MyDonations = () => {
   const [donations, setDonations] = useState([]);
@@ -13,6 +14,7 @@ const MyDonations = () => {
       setDonations(res.data);
     } catch (e) {
       console.error(e);
+      toast.error(getApiError(e, 'فشل تحميل التبرعات'));
     } finally {
       setLoading(false);
     }
@@ -28,7 +30,7 @@ const MyDonations = () => {
         await deleteDonation(id);
         setDonations(donations.filter(d => d.id !== id));
       } catch (e) {
-        alert('حدث خطأ أثناء الحذف');
+        toast.error(getApiError(e, 'حدث خطأ أثناء الحذف'));
       }
     }
   };

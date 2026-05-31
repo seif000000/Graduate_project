@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Save, Search, Pill, Tag, Percent, AlertCircle } from 'lucide-react';
-import { getPharmacyInventory } from '../api';
+import { getPharmacyInventory, getApiError } from '../api';
+import toast from 'react-hot-toast';
 
 const PricingControl = () => {
   const [medicines, setMedicines] = useState([]);
@@ -21,6 +22,7 @@ const PricingControl = () => {
         setMedicines(mapped);
       } catch (e) {
         console.error(e);
+        toast.error(getApiError(e, 'فشل تحميل قائمة الأسعار'));
       } finally {
         setLoading(false);
       }
