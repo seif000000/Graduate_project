@@ -7,6 +7,7 @@ from app.models.medicine import Donation
 from app.models.notification import Notification
 from app.models.report import UserReport
 from app.api.deps import get_current_active_user, get_current_admin
+from app.services.user_delete import delete_user_cascade
 
 router = APIRouter(tags=["users"])
 
@@ -74,13 +75,16 @@ def delete_user(
     current_admin: User = Depends(get_current_admin),
     session: Session = Depends(get_session),
 ):
-    """Admin: permanently delete a user account."""
-    user = session.get(User, user_id)
+    """Admin: permanently delete a user account and all related data."""
+    if user_id == current_admin.id:
+        raise HTTPException(status_code=400, detail="لا يمكنك حذف حسابك الخاص")
+
+    user = delete_user_cascade(session, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="المستخدم غير موجود")
-    session.delete(user)
+
     session.commit()
-    return {"message": "تم حذف المستخدم بنجاح"}
+    return {"message": "تم حذف المستخدم وجميع بياناته المرتبطة بنجاح"}
 
 # ─── Pharmacy Stats ──────────────────────────────────────────────────────────
 
