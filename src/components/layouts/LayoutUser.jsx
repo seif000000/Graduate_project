@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Home, Search, Map as MapIcon, PlusCircle, LayoutDashboard,
+  Search, Map as MapIcon, PlusCircle, LayoutDashboard,
   ListChecks, FileText, Heart, AlertCircle, Bot,
   ShieldCheck, LogOut, Bell, HelpCircle,
   UserCircle, Mail, Menu, X
@@ -11,13 +11,12 @@ import {
 
 const userNav = [
   { section: 'الرئيسي', items: [
-    { label: 'الرئيسية', icon: Home, path: '/' },
+    { label: 'لوحتي', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'ابحث عن دواء', icon: Search, path: '/search' },
     { label: 'الخريطة التفاعلية', icon: MapIcon, path: '/map' },
   ]},
   { section: 'خدماتك', items: [
     { label: 'تبرع بدواء', icon: PlusCircle, path: '/donate' },
-    { label: 'لوحتي الخاصة', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'طلباتي', icon: ListChecks, path: '/requests' },
     { label: 'تبرعاتي', icon: Heart, path: '/my-donations' },
     { label: 'السجل الطبي', icon: FileText, path: '/medical-history' },
@@ -38,14 +37,14 @@ const LayoutUser = ({ children, title }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const SidebarContent = () => (
     <>
       {/* Brand */}
       <div className="p-5 border-b border-white/10">
-        <div className="flex items-center gap-3">
+        <Link to="/dashboard" className="flex items-center gap-3" onClick={() => setSidebarOpen(false)}>
           <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
             🏥
           </div>
@@ -53,7 +52,7 @@ const LayoutUser = ({ children, title }) => {
             <h1 className="text-lg font-black text-white tracking-tight">مُسند</h1>
             <p className="text-[9px] text-primary-300 font-bold uppercase tracking-widest opacity-60">Musnad Platform</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Navigation */}

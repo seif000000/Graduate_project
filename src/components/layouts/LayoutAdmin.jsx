@@ -30,7 +30,7 @@ const LayoutAdmin = ({ children, title }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const SidebarContent = () => (

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import GuestRoute from './components/GuestRoute';
 
 // Layouts
 import LayoutAdmin from './components/layouts/LayoutAdmin';
@@ -9,11 +10,11 @@ import LayoutPharmacy from './components/layouts/LayoutPharmacy';
 import LayoutUser from './components/layouts/LayoutUser';
 
 // Public Pages
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
 // User / Shared Pages
-import Home from './pages/Home';
 import Search from './pages/Search';
 import Donate from './pages/Donate';
 import Map from './pages/Map';
@@ -45,7 +46,7 @@ import NearExpiry from './pages/NearExpiry';
 import PharmacyStats from './pages/PharmacyStats';
 import PricingControl from './pages/PricingControl';
 
-import Chatbot from './components/Chatbot';
+import ChatbotGate from './components/ChatbotGate';
 
 // Helper component to add titles dynamically
 function App() {
@@ -54,9 +55,16 @@ function App() {
       <Router>
         <Toaster position="top-right" reverseOrder={true} />
         <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Public — landing & auth (guests only) */}
+          <Route path="/" element={
+            <GuestRoute><Landing /></GuestRoute>
+          } />
+          <Route path="/login" element={
+            <GuestRoute><Login /></GuestRoute>
+          } />
+          <Route path="/register" element={
+            <GuestRoute><Register /></GuestRoute>
+          } />
           <Route path="/unauthorized" element={
             <div className="flex bg-[#FAF9F6] min-h-screen items-center justify-center">
               <div className="text-center space-y-4">
@@ -113,16 +121,22 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* Default / User Routes (LayoutUser) */}
-          {/* Note: some pages are public while others are protected for logged-in users only */}
-          
-          {/* Public or shared pages accessible by everyone using LayoutUser  */}
-          <Route path="/" element={<LayoutUser title="الرئيسية"><Home /></LayoutUser>} />
-          <Route path="/search" element={<LayoutUser title="البحث عن دواء"><Search /></LayoutUser>} />
-          <Route path="/map" element={<LayoutUser title="الخريطة التفاعلية"><Map /></LayoutUser>} />
-          <Route path="/help-center" element={<LayoutUser title="مركز المساعدة"><HelpCenter /></LayoutUser>} />
-          
-          {/* Protected User Routes */}
+          {/* User app — requires login */}
+          <Route path="/search" element={
+            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+              <LayoutUser title="البحث عن دواء"><Search /></LayoutUser>
+            </ProtectedRoute>
+          } />
+          <Route path="/map" element={
+            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+              <LayoutUser title="الخريطة التفاعلية"><Map /></LayoutUser>
+            </ProtectedRoute>
+          } />
+          <Route path="/help-center" element={
+            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+              <LayoutUser title="مركز المساعدة"><HelpCenter /></LayoutUser>
+            </ProtectedRoute>
+          } />
           <Route path="/donate" element={
             <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
               <LayoutUser title="تبرع بدواء"><Donate /></LayoutUser>
@@ -205,7 +219,7 @@ function App() {
           <Route path="/near-expiry" element={<Navigate to="/pharmacy/near-expiry" replace />} />
           
         </Routes>
-        <Chatbot />
+        <ChatbotGate />
       </Router>
     </AuthProvider>
   );

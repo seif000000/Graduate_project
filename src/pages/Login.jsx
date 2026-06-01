@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, ArrowLeft } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { login } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { getHomeRoute } from '../utils/getHomeRoute';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login: authLogin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,14 +28,10 @@ const Login = () => {
       };
       
       authLogin(response.data.access_token, userData);
-      
-      // Role-based redirection
-      if (response.data.role === 'admin') navigate('/admin');
-      else if (response.data.role === 'pharmacy') {
-         if (!response.data.is_verified) navigate('/account-verification');
-         else navigate('/pharmacy/inventory');
-      }
-      else navigate('/');
+
+      const from = location.state?.from?.pathname;
+      const defaultHome = getHomeRoute(response.data.role, response.data.is_verified);
+      navigate(from && from !== '/' && from !== '/login' ? from : defaultHome, { replace: true });
     } catch (error) {
       alert(error.response?.data?.detail || "فشل تسجيل الدخول");
     } finally {
