@@ -43,7 +43,9 @@ api.interceptors.response.use(
 );
 
 // ─── Auth ─────────────────────────────────────────────────────────────────
-export const login = (data) => api.post('/auth/login', data);
+export const login = (data) => api.post('/auth/login', data, {
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+});
 export const register = (data) => api.post('/auth/register', data);
 export const verifyPharmacy = (userId) => api.post(`/auth/verify-pharmacy/${userId}`);
 export const getUnverifiedPharmacies = () => api.get('/auth/unverified-pharmacies');

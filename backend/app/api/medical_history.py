@@ -48,8 +48,14 @@ def add_report(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    report = MedicalReport.from_orm(report_in, update={"user_id": current_user.id})
-    report.user_id = current_user.id
+    report = MedicalReport(
+        user_id=current_user.id,
+        name=report_in.name,
+        type=report_in.type,
+        size=report_in.size,
+        date=report_in.date,
+        file_url=report_in.file_url,
+    )
     session.add(report)
     session.commit()
     session.refresh(report)

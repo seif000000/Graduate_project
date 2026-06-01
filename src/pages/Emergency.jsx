@@ -13,6 +13,7 @@ const Emergency = () => {
   const [responseMsg, setResponseMsg] = useState({});
   const [expandedId, setExpandedId] = useState(null);
   const [showSOSForm, setShowSOSForm] = useState(false);
+  const [submittingSOS, setSubmittingSOS] = useState(false);
   const [newSOS, setNewSOS] = useState({
     medicine_name: '',
     description: '',
@@ -45,6 +46,8 @@ const Emergency = () => {
 
   const handleCreateSOS = async (e) => {
     e.preventDefault();
+    if (submittingSOS) return;
+    setSubmittingSOS(true);
     try {
       await createSOSRequest(newSOS);
       setShowSOSForm(false);
@@ -54,6 +57,8 @@ const Emergency = () => {
     } catch (e) {
       console.error(e);
       toast.error(getApiError(e, 'فشل نشر الطلب'));
+    } finally {
+      setSubmittingSOS(false);
     }
   };
 
@@ -170,7 +175,9 @@ const Emergency = () => {
                   </div>
                 </div>
                 <div className="flex gap-4 pt-4">
-                  <button type="submit" className="btn-primary flex-grow h-14">نشر الاستغاثة الآن</button>
+                  <button type="submit" disabled={submittingSOS} className="btn-primary flex-grow h-14 disabled:opacity-50">
+                    {submittingSOS ? 'جاري النشر...' : 'نشر الاستغاثة الآن'}
+                  </button>
                   <button type="button" onClick={() => setShowSOSForm(false)} className="btn-secondary h-14 px-8">إلغاء</button>
                 </div>
               </form>

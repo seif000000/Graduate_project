@@ -71,10 +71,37 @@ def get_medicine_analytics(
 
 @router.get("/emergency-board")
 def get_emergency_board(session: Session = Depends(get_session)):
-    # Fetch requests with their responses
-    statement = select(MedicineRequest).where(MedicineRequest.status == "pending").order_by(MedicineRequest.created_at.desc())
+    statement = (
+        select(MedicineRequest)
+        .where(MedicineRequest.status == "pending")
+        .order_by(MedicineRequest.created_at.desc())
+    )
     results = session.exec(statement).all()
-    return results
+    board = []
+    for req in results:
+        session.refresh(req)
+        board.append({
+            "id": req.id,
+            "medicine_name": req.medicine_name,
+            "urgency": req.urgency,
+            "description": req.description,
+            "location": req.location,
+            "latitude": req.latitude,
+            "longitude": req.longitude,
+            "status": req.status,
+            "created_at": req.created_at.isoformat(),
+            "requester_id": req.requester_id,
+            "responses": [
+                {
+                    "id": r.id,
+                    "message": r.message,
+                    "responder_id": r.responder_id,
+                    "created_at": r.created_at.isoformat(),
+                }
+                for r in (req.responses or [])
+            ],
+        })
+    return board
 
 @router.post("/respond/{request_id}")
 def respond_to_request(

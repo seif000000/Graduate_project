@@ -50,9 +50,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = D
             "full_name": user.full_name,
             "is_verified": user.is_verified,
         }
-    except Exception as e:
-        import sys, traceback
-        traceback.print_exc(file=sys.stderr)
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.post("/verify-pharmacy/{user_id}")
