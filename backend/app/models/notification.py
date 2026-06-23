@@ -7,7 +7,7 @@ class NotificationBase(SQLModel):
     desc: str
     type: str = "info" # info, success, warning, badge
     is_new: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Notification(NotificationBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

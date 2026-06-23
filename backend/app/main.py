@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, medicine, requests, chat, inventory, users, vouchers, medical_history, inbox, dashboard
 from app.db.database import init_db
+from app.models import feedback  # to register the model
 
 @asynccontextmanager
 async def lifespan(app):

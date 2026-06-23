@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ListChecks, Clock, CheckCircle, XCircle, Search, Filter, Info, MapPin, Trash2 } from 'lucide-react';
-import { getMyRequests, deleteMyRequest, getApiError } from '../api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ListChecks, Clock, CheckCircle, XCircle, Search, Filter, Info, MapPin, Trash2, Star, X } from 'lucide-react';
+import { getMyRequests, deleteMyRequest, submitFeedback, getApiError } from '../api';
 import toast from 'react-hot-toast';
 
 const MyRequests = () => {
@@ -9,6 +9,10 @@ const MyRequests = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('جميع الحالات');
   const [searchTerm, setSearchTerm] = useState('');
+  const [feedbackModal, setFeedbackModal] = useState(null); // { requestId }
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   const fetchRequests = async () => {
     try {
@@ -30,6 +34,22 @@ const MyRequests = () => {
       } catch (e) {
         toast.error(getApiError(e, 'حدث خطأ أثناء الحذف'));
       }
+    }
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackModal) return;
+    setSubmittingFeedback(true);
+    try {
+      await submitFeedback(feedbackModal.requestId, { rating, comment });
+      toast.success('شكراً! تم إرسال تقييمك بنجاح ⭐');
+      setFeedbackModal(null);
+      setRating(5);
+      setComment('');
+    } catch (e) {
+      toast.error(getApiError(e, 'فشل إرسال التقييم'));
+    } finally {
+      setSubmittingFeedback(false);
     }
   };
 
@@ -140,8 +160,16 @@ const MyRequests = () => {
                               <Trash2 size={14} />
                             </button>
                          )}
-                         {(req.status === 'approved' || req.status === 'fulfilled') && (
+                         {req.status === 'approved' && (
                             <button className="h-10 px-6 rounded-xl bg-primary-600 text-white font-black text-xs shadow-lg shadow-primary-500/30">عرض الكوبون</button>
+                         )}
+                         {req.status === 'fulfilled' && (
+                            <button
+                               onClick={() => setFeedbackModal({ requestId: req.id })}
+                               className="h-10 px-5 rounded-xl bg-amber-500 text-white font-black text-xs shadow-lg shadow-amber-400/30 flex items-center gap-2 hover:bg-amber-600 transition-all"
+                            >
+                               <Star size={13} fill="white" /> تقييم
+                            </button>
                          )}
                       </div>
                   </div>
@@ -150,6 +178,68 @@ const MyRequests = () => {
           );
         })}
       </div>
+
+      {/* Feedback Modal */}
+      <AnimatePresence>
+        {feedbackModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setFeedbackModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl"
+              onClick={e => e.stopPropagation()}
+              dir="rtl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-black text-slate-800">تقييم الطلب</h3>
+                <button onClick={() => setFeedbackModal(null)} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="text-center">
+                  <p className="text-sm font-bold text-slate-500 mb-3">ما مدى رضاك عن الخدمة؟</p>
+                  <div className="flex justify-center gap-2">
+                    {[1,2,3,4,5].map(star => (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        className="text-3xl transition-transform hover:scale-110"
+                      >
+                        <Star size={32} className={star <= rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <textarea
+                  value={comment}
+                  onChange={e => setComment(e.target.value)}
+                  placeholder="أضف تعليقاً (اختياري)..."
+                  rows={3}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-medium text-slate-700 outline-none focus:border-primary-400 resize-none transition-all"
+                />
+
+                <button
+                  onClick={handleFeedbackSubmit}
+                  disabled={submittingFeedback}
+                  className="w-full h-14 bg-primary-600 text-white font-black rounded-2xl shadow-lg shadow-primary-500/30 hover:bg-primary-700 transition-all disabled:opacity-60"
+                >
+                  {submittingFeedback ? 'جاري الإرسال...' : 'إرسال التقييم ⭐'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

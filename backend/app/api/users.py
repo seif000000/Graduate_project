@@ -86,6 +86,25 @@ def delete_user(
     session.commit()
     return {"message": "تم حذف المستخدم وجميع بياناته المرتبطة بنجاح"}
 
+@router.patch("/{user_id}", response_model=UserRead)
+def admin_update_user(
+    user_id: int,
+    user_update: UserUpdate,
+    current_admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session),
+):
+    """Admin: update any user's data (role, is_verified, etc.)."""
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="المستخدم غير موجود")
+    update_data = user_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(user, key, value)
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
 # ─── Pharmacy Stats ──────────────────────────────────────────────────────────
 
 @router.get("/pharmacy/stats")
@@ -184,3 +203,83 @@ def create_report(
     session.commit()
     session.refresh(report)
     return report
+
+# ─── Admin Absolute Controls ──────────────────────────────────────────────
+
+@router.delete("/admin/donations/{donation_id}")
+def admin_delete_donation(
+    donation_id: int,
+    admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session)
+):
+    """Admin: delete any donation/offer."""
+    donation = session.get(Donation, donation_id)
+    if not donation:
+        raise HTTPException(status_code=404, detail="التبرع غير موجود")
+    session.delete(donation)
+    session.commit()
+    return {"message": "تم حذف التبرع بواسطة الإدارة"}
+
+@router.post("/admin/reservations/{request_id}/cancel")
+def admin_cancel_reservation(
+    request_id: int,
+    admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session)
+):
+    from app.models.request import MedicineRequest
+    """Admin: cancel a reservation and make donation available again."""
+    req = session.get(MedicineRequest, request_id)
+    if not req or req.status != "approved":
+        raise HTTPException(status_code=400, detail="لا يوجد حجز نشط لهذا الطلب")
+    
+    req.status = "pending"
+    if req.reserved_donation_id:
+        donation = session.get(Donation, req.reserved_donation_id)
+        if donation:
+            donation.status = "available"
+            session.add(donation)
+        req.reserved_donation_id = None
+        
+    session.add(req)
+    session.commit()
+    return {"message": "تم إلغاء الحجز بواسطة الإدارة"}
+
+@router.delete("/admin/vouchers/{voucher_id}")
+def admin_delete_voucher(
+    voucher_id: str,
+    admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session)
+):
+    from app.models.voucher import Voucher
+    """Admin: delete or invalidate a voucher."""
+    voucher = session.get(Voucher, voucher_id)
+    if not voucher:
+        raise HTTPException(status_code=404, detail="الكوبون غير موجود")
+    session.delete(voucher)
+    session.commit()
+    return {"message": "تم حذف الكوبون بواسطة الإدارة"}
+
+@router.get("/admin/feedbacks")
+def admin_get_feedbacks(
+    admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session)
+):
+    from app.models.feedback import Feedback
+    """Admin: view all user feedbacks."""
+    statement = select(Feedback).order_by(Feedback.created_at.desc())
+    return session.exec(statement).all()
+
+@router.delete("/admin/feedbacks/{feedback_id}")
+def admin_delete_feedback(
+    feedback_id: int,
+    admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session)
+):
+    from app.models.feedback import Feedback
+    """Admin: delete inappropriate feedback."""
+    fb = session.get(Feedback, feedback_id)
+    if not fb:
+        raise HTTPException(status_code=404, detail="التقييم غير موجود")
+    session.delete(fb)
+    session.commit()
+    return {"message": "تم حذف التقييم بواسطة الإدارة"}

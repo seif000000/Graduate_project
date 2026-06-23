@@ -1,6 +1,9 @@
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
+from datetime import datetime, timezone
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 class MedicineBase(SQLModel):
     name: str = Field(index=True)
@@ -22,8 +25,11 @@ class DonationBase(SQLModel):
     status: str = "available" # available, reserved, delivered
     is_near_expiry: bool = False
     batch_info: Optional[str] = None
-    price: str = "مجاني" # or a numeric price
-    added_at: datetime = Field(default_factory=datetime.utcnow)
+    price: str = "مجاني" # Deprecated/legacy string price
+    type: str = "مجاني" # مجاني or خصم
+    base_price: Optional[float] = None
+    discount_percentage: Optional[int] = None
+    added_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Donation(DonationBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

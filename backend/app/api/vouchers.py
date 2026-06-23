@@ -14,17 +14,6 @@ def get_my_vouchers(
     current_user: User = Depends(get_current_user)
 ):
     vouchers = session.exec(select(Voucher).where(Voucher.user_id == current_user.id)).all()
-    # Initial seeding if user has no vouchers to show the UI
-    if not vouchers:
-        v1 = Voucher(id=f'VOU-{current_user.id}-001', user_id=current_user.id, pharmacy='صيدلية مسند المركزية', med='Insulin Glargine', type='مجاني', expiry='2026-12-31', status='active')
-        v2 = Voucher(id=f'VOU-{current_user.id}-002', user_id=current_user.id, pharmacy='صيدلية الشفاء', med='Glucophage 850mg', type='خصم 50%', expiry='2026-11-15', status='active')
-        session.add(v1)
-        session.add(v2)
-        session.commit()
-        session.refresh(v1)
-        session.refresh(v2)
-        vouchers = [v1, v2]
-        
     return vouchers
 
 @router.post("/redeem/{voucher_id}")

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, UserCheck, UserMinus, Search, Filter, MoreVertical, Shield, Building, Trash2 } from 'lucide-react';
-import { getAllUsers, deleteUser, getApiError } from '../api';
+import { getAllUsers, deleteUser, adminVerifyUser, getApiError } from '../api';
 import toast from 'react-hot-toast';
 
 const UsersManagement = () => {
@@ -41,6 +41,16 @@ const UsersManagement = () => {
       toast.error(getApiError(e, 'فشل حذف المستخدم'));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleVerify = async (userId, currentStatus) => {
+    try {
+      await adminVerifyUser(userId, !currentStatus);
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_verified: !currentStatus } : u));
+      toast.success(!currentStatus ? 'تم توثيق المستخدم ✅' : 'تم إلغاء التوثيق');
+    } catch (e) {
+      toast.error(getApiError(e, 'فشل تحديث حالة التوثيق'));
     }
   };
 
@@ -189,7 +199,15 @@ const UsersManagement = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <button className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="توثيق">
+                        <button
+                          onClick={() => handleVerify(user.id, user.is_verified)}
+                          className={`p-2 rounded-lg transition-all ${
+                            user.is_verified
+                              ? 'bg-emerald-500/10 text-emerald-400 hover:bg-red-500/10 hover:text-red-400'
+                              : 'bg-white/5 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10'
+                          }`}
+                          title={user.is_verified ? 'إلغاء التوثيق' : 'توثيق'}
+                        >
                           <UserCheck size={15} />
                         </button>
                         <button

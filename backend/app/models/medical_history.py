@@ -12,7 +12,7 @@ class MedicalReportBase(SQLModel):
 class MedicalReport(MedicalReportBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class MedicalReportCreate(MedicalReportBase):
     pass
@@ -25,7 +25,7 @@ class MedicationLogBase(SQLModel):
 class MedicationLog(MedicationLogBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class MedicationLogCreate(MedicationLogBase):
     pass

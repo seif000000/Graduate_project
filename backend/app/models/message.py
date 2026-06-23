@@ -12,7 +12,7 @@ class Message(SQLModel, table=True):
     receiver_id: int = Field(foreign_key="user.id")
     text: str
     status: str = Field(default="sent") # sent, read
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class MessageCreate(MessageBase):
     pass

@@ -36,3 +36,6 @@ class UserUpdate(SQLModel):
     full_name: Optional[str] = None
     password: Optional[str] = None
     role: Optional[str] = None
+    is_verified: Optional[bool] = None
+    phone: Optional[str] = None
+    pharmacy_address: Optional[str] = None

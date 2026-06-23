@@ -120,6 +120,82 @@ def respond_to_request(
     session.commit()
     return {"message": "تم إرسال ردك بنجاح"}
 
+@router.post("/approve/{request_id}")
+def approve_request(
+    request_id: int, 
+    donation_id: int,
+    current_user: User = Depends(get_current_active_user), 
+    session: Session = Depends(get_session)
+):
+    from app.models.voucher import Voucher
+    import uuid
+    
+    req = session.get(MedicineRequest, request_id)
+    if not req or req.status != "pending":
+        raise HTTPException(status_code=400, detail="الطلب غير موجود أو تمت الموافقة عليه مسبقاً")
+        
+    donation = session.get(Donation, donation_id)
+    if not donation or donation.donor_id != current_user.id or donation.status != "available":
+        raise HTTPException(status_code=400, detail="التبرع غير متاح أو لا تملكه")
+        
+    req.status = "approved"
+    req.reserved_donation_id = donation.id
+    donation.status = "reserved"
+    
+    session.add(req)
+    session.add(donation)
+    
+    message = "تمت الموافقة على طلبك."
+    # If a pharmacy approves, generate a voucher
+    if current_user.role == "pharmacy":
+        vid = f"VOU-{req.requester_id}-{str(uuid.uuid4())[:8].upper()}"
+        voucher_type = donation.type if donation.type == "مجاني" else f"خصم {donation.discount_percentage}%"
+        voucher = Voucher(
+            id=vid,
+            user_id=req.requester_id,
+            pharmacy=current_user.full_name or "صيدلية",
+            med=req.medicine_name,
+            type=voucher_type,
+            expiry=donation.expiry_date
+        )
+        session.add(voucher)
+        message = "تم الموافقة وإصدار كوبون لك."
+        
+    session.commit()
+    return {"message": message}
+
+@router.post("/{request_id}/feedback")
+def submit_feedback(
+    request_id: int,
+    rating: int = Query(..., ge=1, le=5),
+    comment: Optional[str] = None,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    from app.models.feedback import Feedback
+    
+    req = session.get(MedicineRequest, request_id)
+    if not req or req.requester_id != current_user.id:
+        raise HTTPException(status_code=404, detail="الطلب غير موجود أو لا تملكه")
+    
+    if req.status != "fulfilled":
+        raise HTTPException(status_code=400, detail="لا يمكن التقييم إلا بعد الاستلام (fulfilled)")
+        
+    donation = session.get(Donation, req.reserved_donation_id)
+    target_id = donation.donor_id if donation else req.responses[-1].responder_id if req.responses else 1
+    
+    fb = Feedback(
+        user_id=current_user.id,
+        target_id=target_id,
+        donation_id=req.reserved_donation_id,
+        request_id=request_id,
+        rating=rating,
+        comment=comment
+    )
+    session.add(fb)
+    session.commit()
+    return {"message": "تم إضافة التقييم بنجاح"}
+
 @router.delete("/admin/request/{request_id}")
 def admin_delete_request(
     request_id: int, 

@@ -83,6 +83,9 @@ export const getPharmacyStats = () => api.get('/users/pharmacy/stats');
 // ─── Emergency / SOS ─────────────────────────────────────────────────────
 export const getEmergencyBoard = () => api.get('/requests/emergency-board');
 export const createSOSRequest = (data) => api.post('/requests/emergency', data);
+export const respondToRequest = (id, message) => api.post(`/requests/respond/${id}?message=${message}`);
+export const approveRequest = (id, donationId) => api.post(`/requests/approve/${id}?donation_id=${donationId}`);
+export const submitFeedback = (id, data) => api.post(`/requests/${id}/feedback`, null, { params: data });
 export const respondToSOS = (requestId, message) =>
   api.post(`/requests/respond/${requestId}?message=${encodeURIComponent(message)}`);
 
@@ -95,6 +98,14 @@ export const getMyNotifications = () => api.get('/users/me/notifications');
 export const markNotificationsRead = () => api.post('/users/me/notifications/read-all');
 export const getAdminReports = () => api.get('/users/admin/reports');
 export const submitReport = (data) => api.post('/users/me/report', data);
+// Admin absolute controls
+export const adminDeleteDonation = (id) => api.delete(`/users/admin/donations/${id}`);
+export const adminCancelReservation = (requestId) => api.post(`/users/admin/reservations/${requestId}/cancel`);
+export const adminDeleteVoucher = (voucherId) => api.delete(`/users/admin/vouchers/${voucherId}`);
+export const adminGetFeedbacks = () => api.get('/users/admin/feedbacks');
+export const adminDeleteFeedback = (id) => api.delete(`/users/admin/feedbacks/${id}`);
+// Admin verify/unverify user
+export const adminVerifyUser = (userId, verified) => api.patch(`/users/${userId}`, { is_verified: verified });
 
 // ─── Health AI ────────────────────────────────────────────────────────────
 export const askAI = (message) => api.post('/chat/ask', { message });

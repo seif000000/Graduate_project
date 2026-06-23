@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Save, Search, Pill, Tag, Percent, AlertCircle } from 'lucide-react';
-import { getPharmacyInventory, getApiError } from '../api';
+import { getPharmacyInventory, updatePharmacyInventory, getApiError } from '../api';
 import toast from 'react-hot-toast';
 
 const PricingControl = () => {
@@ -12,12 +12,12 @@ const PricingControl = () => {
     const fetchInventory = async () => {
       try {
         const res = await getPharmacyInventory();
-        // Add mock pricing for display since it's not in the DB yet
+        // Use real DB data
         const mapped = res.data.map(m => ({
           ...m,
-          basePrice: 100 + Math.floor(Math.random() * 200),
-          discount: Math.random() > 0.5 ? 100 : 25,
-          type: Math.random() > 0.5 ? 'free' : 'discount'
+          basePrice: m.base_price || 0,
+          discount: m.discount_percentage || 0,
+          type: m.type === 'مجاني' ? 'free' : 'discount'
         }));
         setMedicines(mapped);
       } catch (e) {
@@ -30,6 +30,42 @@ const PricingControl = () => {
     fetchInventory();
   }, []);
 
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      // Optional: Save all changes. For simplicity, we assume changes are saved instantly or via a batch.
+      // Here we just show success since the real update should be per-item on change or batch.
+      toast.success('تم حفظ التغييرات بنجاح ✅');
+    } catch (e) {
+      toast.error('فشل حفظ التغييرات');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateItem = async (id, field, value) => {
+    const original = [...medicines];
+    try {
+      const updatedList = medicines.map(m => m.id === id ? { ...m, [field]: value } : m);
+      setMedicines(updatedList);
+      
+      const payload = {};
+      if (field === 'discount') {
+          payload.discount_percentage = Number(value);
+          if (Number(value) === 100) payload.type = 'مجاني';
+          else payload.type = 'خصم';
+      }
+      if (field === 'basePrice') payload.base_price = Number(value);
+      
+      updatePharmacyInventory(id, payload).catch(() => {
+          toast.error('فشل تحديث الصنف');
+          setMedicines(original);
+      });
+    } catch(e) {
+      setMedicines(original);
+    }
+  };
+
   return (
     <div className="space-y-8 pb-12" dir="rtl">
       <header className="flex flex-wrap items-center justify-between gap-6">
@@ -40,7 +76,7 @@ const PricingControl = () => {
           </h1>
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">تحديد نسب الخصم للأدوية المتوفرة للصرف المجاني أو المخفض</p>
         </div>
-        <button onClick={() => toast.success('تم حفظ التغييرات بنجاح ✅')} className="btn-primary h-12 px-8 flex items-center gap-2 shadow-primary-500/20">
+        <button onClick={handleSave} disabled={loading} className="btn-primary h-12 px-8 flex items-center gap-2 shadow-primary-500/20">
            <Save size={18} /> حفظ التغييرات
         </button>
       </header>
@@ -106,12 +142,13 @@ const PricingControl = () => {
                       <p className="text-sm font-black text-slate-700">{med.basePrice} ج.م</p>
                    </div>
                    
-                   <div className="text-right">
+                    <div className="text-right">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">نسبة الخصم</p>
                       <div className="flex items-center gap-2">
                         <input 
                           type="number" 
-                          value={med.discount} 
+                          value={med.discount}
+                          onChange={(e) => handleUpdateItem(med.id, 'discount', e.target.value)}
                           className="w-16 h-10 bg-slate-50 border border-slate-200 rounded-lg text-center font-black text-primary-600 outline-none focus:border-primary-500" 
                         />
                         <span className="text-sm font-bold text-slate-400">%</span>
@@ -121,7 +158,7 @@ const PricingControl = () => {
                    <div className="text-right">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">السعر بعد العرض</p>
                       <p className="text-sm font-black text-emerald-600">
-                        {med.discount === 100 ? 'مجاني تماماً' : `${Math.round(med.basePrice * (1 - med.discount/100))} ج.م`}
+                        {Number(med.discount) === 100 ? 'مجاني تماماً' : `${Math.round(med.basePrice * (1 - med.discount/100))} ج.م`}
                       </p>
                    </div>
                 </div>

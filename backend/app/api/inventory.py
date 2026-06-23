@@ -31,6 +31,9 @@ def get_pharmacy_inventory(
             "is_near_expiry": d.is_near_expiry,
             "batch_info": d.batch_info,
             "price": d.price,
+            "type": d.type,
+            "base_price": d.base_price,
+            "discount_percentage": d.discount_percentage,
             "added_at": d.added_at
         } for d, m in results
     ]

@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlmodel import SQLModel, Field
-from datetime import datetime
+from datetime import datetime, timezone
 
 class VoucherBase(SQLModel):
     id: str = Field(primary_key=True)
@@ -12,7 +12,7 @@ class VoucherBase(SQLModel):
 
 class Voucher(VoucherBase, table=True):
     user_id: int = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class VoucherCreate(SQLModel):
     id: str
