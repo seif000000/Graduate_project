@@ -90,7 +90,7 @@ export const respondToSOS = (requestId, message) =>
   api.post(`/requests/respond/${requestId}?message=${encodeURIComponent(message)}`);
 
 // ─── Admin ────────────────────────────────────────────────────────────────
-export const getAllUsers = (role) => api.get('/users', { params: role ? { role } : {} });
+export const getAllUsers = (role) => api.get('/users/', { params: role ? { role } : {} });
 export const deleteUser = (userId) => api.delete(`/users/${userId}`);
 export const adminDeleteRequest = (requestId) => api.delete(`/requests/admin/request/${requestId}`);
 export const getAdminStats = () => api.get('/users/admin/stats');

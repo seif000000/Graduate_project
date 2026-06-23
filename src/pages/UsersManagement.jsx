@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Users, UserCheck, UserMinus, Search, Filter, MoreVertical, Shield, Building, Trash2 } from 'lucide-react';
-import { getAllUsers, deleteUser, adminVerifyUser, getApiError } from '../api';
+import { getAllUsers, getAdminStats, deleteUser, adminVerifyUser, getApiError } from '../api';
 import toast from 'react-hot-toast';
 
 const UsersManagement = () => {
   const [filter, setFilter] = useState('all');
   const [users, setUsers] = useState([]);
+  const [platformStats, setPlatformStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingId, setDeletingId] = useState(null);
@@ -17,12 +18,24 @@ const UsersManagement = () => {
                         role === 'المتبرعون' ? 'user' :
                         role === 'الصيدليات' ? 'pharmacy' : null;
       const res = await getAllUsers(roleParam);
-      if (Array.isArray(res.data)) {
-        setUsers(res.data);
+      const payload = res.data;
+      const list = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.users)
+          ? payload.users
+          : null;
+
+      if (list) {
+        setUsers(list);
       } else {
-        console.error("Expected an array but got:", res.data);
+        console.error('Expected an array but got:', payload);
         setUsers([]);
-        toast.error("فشل في استلام البيانات الصحيحة من الخادم");
+        const looksLikeHtml = typeof payload === 'string' && payload.includes('<!DOCTYPE');
+        toast.error(
+          looksLikeHtml
+            ? 'الخادم غير متصل — تأكد أن الباك إند يعمل (python -m app.main)'
+            : 'فشل في استلام البيانات الصحيحة من الخادم'
+        );
       }
     } catch (e) {
       console.error(e);
@@ -35,6 +48,12 @@ const UsersManagement = () => {
   useEffect(() => {
     fetchUsers(filter);
   }, [filter]);
+
+  useEffect(() => {
+    getAdminStats()
+      .then((res) => setPlatformStats(res.data))
+      .catch((e) => console.error('Failed to load admin stats:', e));
+  }, []);
 
   const handleDelete = async (userId) => {
     if (!window.confirm('هل أنت متأكد من حذف هذا الحساب نهائياً؟')) return;
@@ -87,9 +106,9 @@ const UsersManagement = () => {
   };
 
   const stats = [
-    { label: 'إجمالي المستخدمين', value: users.length, color: 'text-white' },
-    { label: 'مستخدمون عاديون', value: users.filter(u => u.role === 'user').length, color: 'text-emerald-400' },
-    { label: 'صيدليات', value: users.filter(u => u.role === 'pharmacy').length, color: 'text-blue-400' },
+    { label: 'إجمالي المستخدمين', value: platformStats?.total_users ?? users.length, color: 'text-white' },
+    { label: 'مستخدمون عاديون', value: platformStats?.total_donors ?? users.filter(u => u.role === 'user').length, color: 'text-emerald-400' },
+    { label: 'صيدليات', value: platformStats?.total_pharmacies ?? users.filter(u => u.role === 'pharmacy').length, color: 'text-blue-400' },
     { label: 'موثّقون', value: users.filter(u => u.is_verified).length, color: 'text-amber-400' },
   ];
 

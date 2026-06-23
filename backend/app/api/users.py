@@ -228,7 +228,7 @@ def admin_delete_voucher(
 
 # ─── Admin: List All Users ────────────────────────────────────────────────────
 
-@router.get("/", response_model=List[UserRead])
+@router.get("", response_model=List[UserRead])
 def list_all_users(
     role: Optional[str] = None,
     current_admin: User = Depends(get_current_admin),
