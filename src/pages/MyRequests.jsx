@@ -8,6 +8,7 @@ const MyRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('جميع الحالات');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchRequests = async () => {
     try {
@@ -67,6 +68,8 @@ const MyRequests = () => {
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="البحث برقم الطلب أو اسم الدواء..." 
             className="w-full bg-slate-50 border border-slate-200 h-12 pr-12 pl-4 rounded-xl font-bold text-slate-700 outline-none focus:border-primary-500 transition-all"
           />
@@ -90,6 +93,7 @@ const MyRequests = () => {
       <div className="grid grid-cols-1 gap-6">
         {requests
           .filter(r => filter === 'جميع الحالات' || r.status === filter)
+          .filter(r => r.medicine_name?.includes(searchTerm) || String(r.id).includes(searchTerm))
           .map((req, i) => {
           const status = getStatusInfo(req.status);
           return (

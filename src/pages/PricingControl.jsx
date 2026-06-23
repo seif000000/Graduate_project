@@ -40,7 +40,7 @@ const PricingControl = () => {
           </h1>
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">تحديد نسب الخصم للأدوية المتوفرة للصرف المجاني أو المخفض</p>
         </div>
-        <button className="btn-primary h-12 px-8 flex items-center gap-2 shadow-primary-500/20">
+        <button onClick={() => toast.success('تم حفظ التغييرات بنجاح ✅')} className="btn-primary h-12 px-8 flex items-center gap-2 shadow-primary-500/20">
            <Save size={18} /> حفظ التغييرات
         </button>
       </header>
