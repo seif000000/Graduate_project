@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// In production (Vercel), backend is on the same domain at /_backend
+// In production (Vercel), the backend is served at /api/v1 directly (Vercel routing)
 // In development, it runs on localhost:8000
 const BASE_URL = import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? '/_backend/api/v1' : 'http://localhost:8000/api/v1');
+  (import.meta.env.PROD ? '/api/v1' : 'http://localhost:8000/api/v1');
 
 const api = axios.create({
   baseURL: BASE_URL,
