@@ -9,7 +9,7 @@ load_dotenv()
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 # Hardcoded fallback key — works on Vercel without needing env var config
-_FALLBACK_KEY = "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"
+_FALLBACK_KEY = "AIzaSyBinPjU4F800R_azFDf2nZBa5e6lComOV4"
 
 SYSTEM_INSTRUCTION = (
     "أنت مساعد طبي ذكي خبير ومتخصص حصرياً في منصة 'مُسند' لمساعدة وإرشاد مرضى السكري وارتفاع ضغط الدم. "
@@ -105,7 +105,7 @@ async def ask_ai(chat_in: ChatMessage):
 
     if not providers:
         # Fallback to the hardcoded key if no env vars are set
-        providers.append(("openai", _FALLBACK_KEY))
+        providers.append(("gemini", _FALLBACK_KEY))
 
     errors = []
 
