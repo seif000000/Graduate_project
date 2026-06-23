@@ -98,6 +98,16 @@ function App() {
               <LayoutAdmin title="سجلات النظام والشكاوى"><Reports /></LayoutAdmin>
             </ProtectedRoute>
           } />
+          <Route path="/admin/pharmacies" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LayoutAdmin title="توثيق الصيدليات"><Admin /></LayoutAdmin>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/settings" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LayoutAdmin title="الإعدادات"><Settings /></LayoutAdmin>
+            </ProtectedRoute>
+          } />
 
           {/* Pharmacy Routes */}
           <Route path="/pharmacy/inventory" element={
@@ -218,6 +228,8 @@ function App() {
           <Route path="/pharmacy-inventory" element={<Navigate to="/pharmacy/inventory" replace />} />
           <Route path="/near-expiry" element={<Navigate to="/pharmacy/near-expiry" replace />} />
           
+          {/* Catch-all route */}
+          <Route path="*" element={<Navigate to="/unauthorized" replace />} />
         </Routes>
         <ChatbotGate />
       </Router>
