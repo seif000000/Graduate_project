@@ -1,4 +1,10 @@
 {
+    "rewrites": [
+        {
+            "source": "/api/v1/:path*",
+            "destination": "/_backend/api/v1/:path*"
+        }
+    ],
     "experimentalServices": {
         "frontend": {
             "routePrefix": "/",
