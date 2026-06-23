@@ -17,7 +17,13 @@ const UsersManagement = () => {
                         role === 'المتبرعون' ? 'user' :
                         role === 'الصيدليات' ? 'pharmacy' : null;
       const res = await getAllUsers(roleParam);
-      setUsers(res.data);
+      if (Array.isArray(res.data)) {
+        setUsers(res.data);
+      } else {
+        console.error("Expected an array but got:", res.data);
+        setUsers([]);
+        toast.error("فشل في استلام البيانات الصحيحة من الخادم");
+      }
     } catch (e) {
       console.error(e);
       toast.error(getApiError(e, 'فشل تحميل المستخدمين'));
@@ -54,7 +60,7 @@ const UsersManagement = () => {
     }
   };
 
-  const filteredUsers = users.filter(u =>
+  const filteredUsers = (users || []).filter(u =>
     u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
