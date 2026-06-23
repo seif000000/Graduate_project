@@ -8,6 +8,9 @@ load_dotenv()
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
+# Hardcoded fallback key — works on Vercel without needing env var config
+_FALLBACK_KEY = "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"
+
 SYSTEM_INSTRUCTION = (
     "أنت مساعد طبي ذكي خبير ومتخصص حصرياً في منصة 'مُسند' لمساعدة وإرشاد مرضى السكري وارتفاع ضغط الدم. "
     "مهمتك هي الإجابة عن الاستفسارات الطبية، توضيح الجرعات ومواعيدها، وتقديم نصائح صحية غذائية وحياتية وبدائل أدوية مخصصة لمرضى السكري والضغط فقط. "
@@ -96,11 +99,13 @@ async def ask_ai(chat_in: ChatMessage):
     if xai_key:
         providers.append(("xai", xai_key))
 
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        providers.append(("groq", groq_key))
+
     if not providers:
-        raise HTTPException(
-            status_code=503,
-            detail="لم يتم ضبط مفاتيح الذكاء الاصطناعي على الخادم",
-        )
+        # Fallback to the hardcoded key if no env vars are set
+        providers.append(("openai", _FALLBACK_KEY))
 
     errors = []
 
@@ -116,6 +121,14 @@ async def ask_ai(chat_in: ChatMessage):
                         url="https://api.openai.com/v1/chat/completions",
                         api_key=key,
                         model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+                    )
+                elif name == "groq":
+                    ai_text = await _call_openai_compatible(
+                        client,
+                        chat_in.message,
+                        url="https://api.groq.com/openai/v1/chat/completions",
+                        api_key=key,
+                        model=os.getenv("GROQ_MODEL", "llama3-8b-8192"),
                     )
                 else:
                     ai_text = await _call_openai_compatible(
