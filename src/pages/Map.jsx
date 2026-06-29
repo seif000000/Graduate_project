@@ -61,35 +61,64 @@ const Map = () => {
   const [userLocation, setUserLocation] = useState('جاري تحديد الموقع...');
   const [userCoords, setUserCoords] = useState(center);
 
+  // 1. Detect location on mount
   useEffect(() => {
-    // 1. Get User Location
-    getCurrentLocation().then(coords => {
-      setUserCoords({ lat: coords.latitude, lng: coords.longitude });
-      setUserLocation('موقعك الحالي');
-    }).catch(() => {
-      setUserLocation('القاهرة، مصر');
-    });
+    getCurrentLocation()
+      .then(coords => {
+        const userLatLng = { lat: coords.latitude, lng: coords.longitude };
+        setUserCoords(userLatLng);
+        
+        // Reverse geocode user location using OpenStreetMap Nominatim
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}&accept-language=ar`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.address) {
+              const address = data.address;
+              const city = address.city || address.town || address.county || '';
+              const suburb = address.suburb || address.neighbourhood || address.district || '';
+              const formatted = [suburb, city].filter(Boolean).join('، ') || data.name || 'موقعك الحالي';
+              setUserLocation(formatted);
+            } else {
+              setUserLocation('موقعك الحالي');
+            }
+          })
+          .catch(() => {
+            setUserLocation('موقعك الحالي');
+          });
+      })
+      .catch(() => {
+        setUserLocation('القاهرة، مصر');
+      });
+  }, []);
 
-    // 2. Fetch Data for Markers
+  // 2. Fetch data for markers when userCoords is updated
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const [invRes, sosRes] = await Promise.all([getInventory(), getEmergencyBoard()]);
         
-        // Transform some data into map markers (simulated placement for mock map)
-        // Adding some random offsets to coordinates for mock testing
-        const meds = invRes.data.slice(0, 10).map((m) => ({
-          lat: m.latitude ?? userCoords.lat + (Math.random() - 0.5) * 0.05,
-          lng: m.longitude ?? userCoords.lng + (Math.random() - 0.5) * 0.05,
-          name: m.name,
-          type: 'مجاني'
-        }));
+        // Transform data into map markers with valid numeric coordinates or safe offsets
+        const meds = invRes.data.slice(0, 10).map((m) => {
+          const lat = m.latitude !== null && m.latitude !== undefined && m.latitude !== 0 ? parseFloat(m.latitude) : userCoords.lat + (Math.random() - 0.5) * 0.05;
+          const lng = m.longitude !== null && m.longitude !== undefined && m.longitude !== 0 ? parseFloat(m.longitude) : userCoords.lng + (Math.random() - 0.5) * 0.05;
+          return {
+            lat,
+            lng,
+            name: m.name,
+            type: 'مجاني'
+          };
+        });
 
-        const sos = sosRes.data.slice(0, 5).map((s) => ({
-          lat: s.latitude ?? userCoords.lat + (Math.random() - 0.5) * 0.05,
-          lng: s.longitude ?? userCoords.lng + (Math.random() - 0.5) * 0.05,
-          name: s.medicine_name,
-          type: 'طلب عاجل'
-        }));
+        const sos = sosRes.data.slice(0, 5).map((s) => {
+          const lat = s.latitude !== null && s.latitude !== undefined && s.latitude !== 0 ? parseFloat(s.latitude) : userCoords.lat + (Math.random() - 0.5) * 0.05;
+          const lng = s.longitude !== null && s.longitude !== undefined && s.longitude !== 0 ? parseFloat(s.longitude) : userCoords.lng + (Math.random() - 0.5) * 0.05;
+          return {
+            lat,
+            lng,
+            name: s.medicine_name,
+            type: 'طلب عاجل'
+          };
+        });
 
         setMarkers([...meds, ...sos]);
       } catch (e) {
@@ -99,7 +128,26 @@ const Map = () => {
     };
 
     fetchData();
-  }, [userCoords.lat, userCoords.lng]);
+  }, [userCoords]);
+
+  const handleNavigation = () => {
+    toast.success("جاري تحديد مسار الملاحة لأقرب نقطة تبرع...");
+    if (markers.length > 0) {
+      // Find closest marker
+      let closest = markers[0];
+      let minD = Infinity;
+      markers.forEach(m => {
+        const d = Math.pow(m.lat - userCoords.lat, 2) + Math.pow(m.lng - userCoords.lng, 2);
+        if (d < minD) {
+          minD = d;
+          closest = m;
+        }
+      });
+      window.open(`https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${closest.lat},${closest.lng}&travelmode=driving`, '_blank');
+    } else {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${userCoords.lat},${userCoords.lng}`, '_blank');
+    }
+  };
 
   const DefaultIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
@@ -193,7 +241,7 @@ const Map = () => {
             </Marker>
           ))}
 
-          {/* Item Markers */}
+          {/* Legend */}
           <div className="absolute bottom-6 left-6 z-[400] bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-white shadow-xl max-w-xs text-right">
              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">دلائل الخريطة</h4>
              <div className="space-y-3">
@@ -214,7 +262,10 @@ const Map = () => {
 
           {/* Navigation Prompt */}
           <div className="absolute bottom-6 right-6 z-[400]">
-             <button className="btn-primary gap-3 rounded-full px-8 shadow-2xl h-14 bg-emerald-600 hover:bg-emerald-700">
+             <button 
+               onClick={handleNavigation}
+               className="btn-primary gap-3 rounded-full px-8 shadow-2xl h-14 bg-emerald-600 hover:bg-emerald-700"
+             >
                 <Navigation size={18} />
                 <span className="font-bold">التتبع الملاحي</span>
              </button>

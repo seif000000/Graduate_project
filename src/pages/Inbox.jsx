@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion';
 import { Search, Send, Image, Paperclip, MoreVertical, Phone, Info, Check, CheckCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getInboxChats, getInboxMessages, sendInboxMessage, getApiError } from '../api';
 
 const Inbox = () => {
+  const [searchParams] = useSearchParams();
+  const targetUserId = searchParams.get('userId');
+  const targetUserName = searchParams.get('userName');
+
   const [activeChat, setActiveChat] = useState(null);
   const [message, setMessage] = useState('');
   const [chats, setChats] = useState([]);
@@ -14,9 +19,26 @@ const Inbox = () => {
   // Load chats on component mount
   useEffect(() => {
     getInboxChats().then(res => {
-      setChats(res.data);
-      if (res.data.length > 0) {
-        setActiveChat(res.data[0].id);
+      const chatList = res.data;
+      setChats(chatList);
+      
+      if (targetUserId) {
+        const idNum = parseInt(targetUserId);
+        setActiveChat(idNum);
+        // If this user is not in the chat list, add them temporarily so they show up
+        if (!chatList.some(c => c.id === idNum)) {
+          const newChat = {
+            id: idNum,
+            name: targetUserName || "متبرع",
+            lastMsg: "بدء المحادثة...",
+            time: "الآن",
+            unread: 0,
+            online: true
+          };
+          setChats(prev => [newChat, ...prev]);
+        }
+      } else if (chatList.length > 0) {
+        setActiveChat(chatList[0].id);
       }
     }).catch(err => {
       console.error(err);
@@ -24,7 +46,7 @@ const Inbox = () => {
     }).finally(() => {
       setLoading(false);
     });
-  }, []);
+  }, [targetUserId, targetUserName]);
 
   // Fetch messages when activeChat changes
   useEffect(() => {

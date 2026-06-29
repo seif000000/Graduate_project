@@ -40,6 +40,21 @@ const Emergency = () => {
     getCurrentLocation().then(coords => {
       setUserCoords(coords);
       setNewSOS(prev => ({ ...prev, ...coords }));
+      
+      // Reverse geocode user location using OpenStreetMap Nominatim
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}&accept-language=ar`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.address) {
+            const address = data.address;
+            const city = address.city || address.town || address.county || '';
+            const suburb = address.suburb || address.neighbourhood || address.district || '';
+            const formatted = [suburb, city].filter(Boolean).join('، ') || data.name || '';
+            if (formatted) {
+              setNewSOS(prev => ({ ...prev, location: formatted }));
+            }
+          }
+        }).catch(err => console.warn("Reverse geocode error:", err));
     }).catch(() => {});
     fetchSOS();
   }, []);
@@ -287,7 +302,7 @@ const Emergency = () => {
                         </div>
 
                         {/* Reply Input */}
-                        {(currentUser.role === 'pharmacy' || currentUser.role === 'donor' || currentUser.role === 'admin') && (
+                        {currentUser && (
                           <div className="relative">
                             <input 
                               type="text"

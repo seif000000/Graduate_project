@@ -13,11 +13,50 @@ def get_chats(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    # Dynamic chat listing can be complex, for MVP we return a mock structure matching the UI
-    return [
-       { "id": 999, "name": "أحمد المتبرع (تجريبي)", "lastMsg": "تمام، هسيبلك الدواء...", "time": "10:30 ص", "unread": 0, "online": True },
-       { "id": 888, "name": "صيدلية مسند المركزية", "lastMsg": "وصلت لنا كمية جديدة.", "time": "أمس", "unread": 0, "online": False }
-    ]
+    from app.models.message import Message
+    from app.models.user import User as DBUser
+    
+    # Get messages involving current user
+    statement = select(Message).where(
+        (Message.sender_id == current_user.id) | (Message.receiver_id == current_user.id)
+    ).order_by(Message.created_at.desc())
+    messages = session.exec(statement).all()
+    
+    counterparty_ids = set()
+    for m in messages:
+        if m.sender_id != current_user.id:
+            counterparty_ids.add(m.sender_id)
+        if m.receiver_id != current_user.id:
+            counterparty_ids.add(m.receiver_id)
+            
+    chats = []
+    if counterparty_ids:
+        users = session.exec(select(DBUser).where(DBUser.id.in_(list(counterparty_ids)))).all()
+        user_map = {u.id: u for u in users}
+        
+        for cid in counterparty_ids:
+            user = user_map.get(cid)
+            if not user:
+                continue
+            last_m = next((m for m in messages if m.sender_id == cid or m.receiver_id == cid), None)
+            last_text = last_m.text if last_m else ""
+            last_time = last_m.created_at.strftime("%H:%M") if last_m else ""
+            chats.append({
+                "id": user.id,
+                "name": user.full_name,
+                "lastMsg": last_text,
+                "time": last_time,
+                "unread": 0,
+                "online": True
+            })
+            
+    if not chats:
+        return [
+           { "id": 999, "name": "أحمد المتبرع (تجريبي)", "lastMsg": "تمام، هسيبلك الدواء...", "time": "10:30 ص", "unread": 0, "online": True },
+           { "id": 888, "name": "صيدلية مسند المركزية", "lastMsg": "وصلت لنا كمية جديدة.", "time": "أمس", "unread": 0, "online": False }
+        ]
+        
+    return chats
 
 @router.get("/messages/{user_id}")
 def get_messages(

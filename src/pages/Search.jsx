@@ -1,17 +1,25 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search as SearchIcon, Filter, MapPin, Grid, List as ListIcon, SlidersHorizontal, Camera, ChevronDown } from 'lucide-react';
+import { Search as SearchIcon, Filter, MapPin, Grid, List as ListIcon, SlidersHorizontal, Camera, ChevronDown, X } from 'lucide-react';
 import MedicineCard from '../components/MedicineCard';
-import { getInventory, getApiError } from '../api';
+import { getInventory, sendInboxMessage, getApiError } from '../api';
 import toast from 'react-hot-toast';
 import { getCurrentLocation, calculateDistance } from '../utils/geolocation';
 
 const Search = () => {
+  const navigate = useNavigate();
   const [view, setView] = useState('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
+
+  // Modal and requesting state
+  const [selectedMedicine, setSelectedMedicine] = useState(null);
+  const [requestMsg, setRequestMsg] = useState('');
+  const [sendingRequest, setSendingRequest] = useState(false);
+  const [currentUser] = useState(JSON.parse(localStorage.getItem('user') || 'null'));
 
   const fetchResults = async (query = '') => {
     setLoading(true);
@@ -52,9 +60,44 @@ const Search = () => {
     }
   };
 
+  const handleOpenDetails = (med) => {
+    setSelectedMedicine(med);
+    setRequestMsg(`أهلاً، أنا مهتم بالحصول على دواء "${med.name}" المعروض للتبرع.`);
+  };
+
+  const handleRequestMedicine = async () => {
+    if (!selectedMedicine || !selectedMedicine.donor_id) {
+      toast.error('بيانات المتبرع غير مكتملة');
+      return;
+    }
+    
+    if (currentUser && currentUser.id === selectedMedicine.donor_id) {
+      toast.error('لا يمكنك طلب دواء قمت أنت بنشره للتبرع');
+      return;
+    }
+
+    setSendingRequest(true);
+    try {
+      // Send message to initiate chat
+      await sendInboxMessage({
+        receiver_id: selectedMedicine.donor_id,
+        text: requestMsg
+      });
+      toast.success('تم إرسال طلبك وبدء المحادثة مع المتبرع بنجاح');
+      setSelectedMedicine(null);
+      // Navigate to inbox with query params to focus on this chat
+      navigate(`/inbox?userId=${selectedMedicine.donor_id}&userName=${encodeURIComponent(selectedMedicine.donor_name || 'متبرع')}`);
+    } catch (e) {
+      console.error(e);
+      toast.error(getApiError(e, 'فشل إرسال الطلب والتواصل مع المتبرع'));
+    } finally {
+      setSendingRequest(false);
+    }
+  };
+
   const categories = [
     { name: 'الكل', count: results.length },
-    { name: 'مجاني', count: results.filter(r => r.price === 'مجاني').length },
+    { name: 'مجاني', count: results.filter(r => r.price === 'مجاني' || r.price === 0).length },
     { name: 'أقراص', count: results.filter(r => r.category === 'tablets').length },
     { name: 'شراب', count: 0 },
   ];
@@ -147,7 +190,7 @@ const Search = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
               >
-                <MedicineCard med={item} />
+                <MedicineCard med={item} onDetail={handleOpenDetails} />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -164,6 +207,124 @@ const Search = () => {
       <div className="flex justify-center pt-8">
         <button className="h-14 px-10 border-2 border-slate-100 text-slate-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all">تحميل المزيد من النتائج</button>
       </div>
+
+      {/* Details Modal */}
+      <AnimatePresence>
+        {selectedMedicine && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedMedicine(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]"
+              onClick={e => e.stopPropagation()}
+              dir="rtl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-black text-slate-800">تفاصيل الدواء 💊</h3>
+                <button onClick={() => setSelectedMedicine(null)} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-6 text-right">
+                <div className="p-6 bg-slate-50 rounded-3xl flex items-center justify-center text-5xl">💊</div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-black text-slate-800">{selectedMedicine.name}</h2>
+                    <span className={`px-3 py-1 rounded-xl text-xs font-black uppercase ${
+                      selectedMedicine.price === 'مجاني' || selectedMedicine.price === 0
+                        ? 'bg-red-50 text-red-600'
+                        : 'bg-primary-50 text-primary-600'
+                    }`}>
+                      {selectedMedicine.price === 'مجاني' || selectedMedicine.price === 0 ? 'مجاني ❤️' : `${selectedMedicine.price} ج.م`}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-400">{selectedMedicine.generic_name || 'الاسم العلمي غير مسجل'}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-600">
+                  <div className="p-4 bg-slate-50 rounded-2xl space-y-1">
+                    <p className="text-slate-400 text-[10px] uppercase tracking-wider leading-none">تاريخ الصلاحية</p>
+                    <p className="text-slate-800 font-black">{selectedMedicine.expiry_date}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl space-y-1">
+                    <p className="text-slate-400 text-[10px] uppercase tracking-wider leading-none">الكمية المتاحة</p>
+                    <p className="text-slate-800 font-black">{selectedMedicine.quantity}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl space-y-1 col-span-2">
+                    <p className="text-slate-400 text-[10px] uppercase tracking-wider leading-none">الموقع الجغرافي</p>
+                    <p className="text-slate-800 font-black flex items-center gap-2">
+                      <MapPin size={12} className="text-primary-500" />
+                      {selectedMedicine.location}
+                      {selectedMedicine.distance && (
+                        <span className="text-primary-600 font-black">(يبعد {selectedMedicine.distance} كم)</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {selectedMedicine.batch_info && (
+                  <div className="p-4 border border-slate-100 rounded-2xl text-xs font-bold">
+                    <span className="text-slate-400">رقم التشغيلة: </span>
+                    <span className="text-slate-800 font-black">{selectedMedicine.batch_info}</span>
+                  </div>
+                )}
+
+                <div className="border-t border-slate-100 pt-6 space-y-4">
+                  <h4 className="font-black text-slate-800">بيانات الناشر (المتبرع)</h4>
+                  <div className="flex items-center gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                    <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-black">
+                      {(selectedMedicine.donor_name || 'م').slice(0, 1)}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-black text-slate-800 text-sm">{selectedMedicine.donor_name || 'متبرع فاعل خير'}</p>
+                      <p className="text-[10px] text-slate-400 font-bold">
+                        {selectedMedicine.donor_role === 'pharmacy' ? 'صيدلية مشاركة 🏥' : 'متبرع فردي 👤'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Request form submission */}
+                {currentUser && currentUser.id !== selectedMedicine.donor_id ? (
+                  <div className="border-t border-slate-100 pt-6 space-y-4">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">رسالة التواصل</label>
+                    <textarea
+                      value={requestMsg}
+                      onChange={e => setRequestMsg(e.target.value)}
+                      rows={2}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-700 outline-none focus:border-primary-400 resize-none transition-all"
+                    />
+                    <button
+                      onClick={handleRequestMedicine}
+                      disabled={sendingRequest}
+                      className="w-full h-14 bg-primary-600 hover:bg-primary-700 text-white font-black rounded-2xl shadow-lg shadow-primary-500/30 transition-all disabled:opacity-60 text-sm"
+                    >
+                      {sendingRequest ? 'جاري التواصل...' : 'طلب الدواء وتواصل مع المتبرع 💬'}
+                    </button>
+                  </div>
+                ) : currentUser ? (
+                  <div className="p-4 bg-slate-100 text-slate-500 rounded-2xl text-center text-xs font-bold">
+                    هذا الدواء قمت أنت بنشره للتبرع
+                  </div>
+                ) : (
+                  <div className="p-4 bg-amber-50 border border-amber-100 text-amber-800 rounded-2xl text-center text-xs font-bold">
+                    يرجى تسجيل الدخول للتمكن من طلب الدواء
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

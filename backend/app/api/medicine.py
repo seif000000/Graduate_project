@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from typing import List
+from typing import List, Optional
 from app.db.database import get_session
 from app.models.medicine import Medicine, Donation, DonationCreate
 from app.models.user import User
@@ -41,7 +41,7 @@ def create_donation(
     return db_donation
 
 @router.get("/inventory")
-def get_inventory(q: str = None, session: Session = Depends(get_session)):
+def get_inventory(q: Optional[str] = None, session: Session = Depends(get_session)):
     # Join Donation with Medicine for full info
     statement = select(Donation, Medicine).join(Medicine).where(Donation.status == "available")
     if q:
@@ -62,7 +62,10 @@ def get_inventory(q: str = None, session: Session = Depends(get_session)):
             "is_near_expiry": d.is_near_expiry,
             "batch_info": d.batch_info,
             "price": d.price,
-            "added_at": d.added_at
+            "added_at": d.added_at,
+            "donor_id": d.donor_id,
+            "donor_name": d.donor.full_name if d.donor else "متبرع فاعل خير",
+            "donor_role": d.donor.role if d.donor else "user"
         } for d, m in results
     ]
 

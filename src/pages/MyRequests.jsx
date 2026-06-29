@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ListChecks, Clock, CheckCircle, XCircle, Search, Filter, Info, MapPin, Trash2, Star, X } from 'lucide-react';
-import { getMyRequests, deleteMyRequest, submitFeedback, getApiError } from '../api';
+import { getMyRequests, deleteMyRequest, submitFeedback, createSOSRequest, getApiError } from '../api';
+import { getCurrentLocation } from '../utils/geolocation';
 import toast from 'react-hot-toast';
 
 const MyRequests = () => {
@@ -13,6 +14,70 @@ const MyRequests = () => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+
+  // New Request Form states
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestFormData, setRequestFormData] = useState({
+    medicine_name: '',
+    urgency: 'متوسطة',
+    description: '',
+    location: '',
+    latitude: null,
+    longitude: null
+  });
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+
+  const handleOpenRequestModal = () => {
+    setShowRequestModal(true);
+    // Fetch user coordinates
+    getCurrentLocation().then(coords => {
+      setRequestFormData(prev => ({
+        ...prev,
+        latitude: coords.latitude,
+        longitude: coords.longitude
+      }));
+      // Reverse geocode using OpenStreetMap Nominatim
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}&accept-language=ar`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.address) {
+            const address = data.address;
+            const city = address.city || address.town || address.county || '';
+            const suburb = address.suburb || address.neighbourhood || address.district || '';
+            const formatted = [suburb, city].filter(Boolean).join('، ') || data.name || '';
+            if (formatted) {
+              setRequestFormData(prev => ({ ...prev, location: formatted }));
+            }
+          }
+        }).catch(err => console.warn(err));
+    }).catch(() => {});
+  };
+
+  const handleCreateRequestSubmit = async (e) => {
+    e.preventDefault();
+    if (submittingRequest) return;
+    setSubmittingRequest(true);
+    try {
+      await createSOSRequest(requestFormData);
+      toast.success('تم إنشاء طلب الدواء الجديد بنجاح');
+      setShowRequestModal(false);
+      // Reset form
+      setRequestFormData({
+        medicine_name: '',
+        urgency: 'متوسطة',
+        description: '',
+        location: '',
+        latitude: null,
+        longitude: null
+      });
+      fetchRequests();
+    } catch (error) {
+      console.error(error);
+      toast.error(getApiError(error, 'فشل إنشاء الطلب'));
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
 
   const fetchRequests = async () => {
     try {
@@ -77,7 +142,10 @@ const MyRequests = () => {
           </h1>
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">متابعة حالة طلبات الأدوية التي قمت بالتقديم عليها</p>
         </div>
-        <button className="btn-primary h-12 px-8 flex items-center gap-2 shadow-primary-500/20">
+        <button 
+          onClick={handleOpenRequestModal}
+          className="btn-primary h-12 px-8 flex items-center gap-2 shadow-primary-500/20"
+        >
            + طلب دواء جديد
         </button>
       </header>
@@ -236,6 +304,93 @@ const MyRequests = () => {
                   {submittingFeedback ? 'جاري الإرسال...' : 'إرسال التقييم ⭐'}
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Request Modal */}
+      <AnimatePresence>
+        {showRequestModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowRequestModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-[2rem] p-8 w-full max-w-lg shadow-2xl"
+              onClick={e => e.stopPropagation()}
+              dir="rtl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-black text-slate-800">طلب دواء جديد 📝</h3>
+                <button onClick={() => setShowRequestModal(false)} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateRequestSubmit} className="space-y-6 text-right">
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">اسم الدواء المطلوب</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={requestFormData.medicine_name}
+                    onChange={(e) => setRequestFormData({...requestFormData, medicine_name: e.target.value})}
+                    placeholder="مثلاً: Glucophage 850mg"
+                    className="w-full bg-slate-50 border border-slate-200 h-12 px-6 rounded-2xl outline-none focus:border-primary-500 font-bold text-slate-700 transition-all" 
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">درجة الاستعجال</label>
+                  <select 
+                    value={requestFormData.urgency}
+                    onChange={(e) => setRequestFormData({...requestFormData, urgency: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 h-12 px-6 rounded-2xl outline-none focus:border-primary-500 font-bold text-slate-700 transition-all"
+                  >
+                    <option value="متوسطة">متوسطة</option>
+                    <option value="عالية">عالية</option>
+                    <option value="قصوى">قصوى 🚨</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">تفاصيل الحالة أو الوصف</label>
+                  <textarea 
+                    rows={3}
+                    value={requestFormData.description}
+                    onChange={(e) => setRequestFormData({...requestFormData, description: e.target.value})}
+                    placeholder="اكتب أي ملاحظات إضافية عن الدواء أو الجرعة..."
+                    className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:border-primary-500 font-bold text-slate-700 transition-all resize-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">الموقع (مكان الاستلام)</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={requestFormData.location}
+                    onChange={(e) => setRequestFormData({...requestFormData, location: e.target.value})}
+                    placeholder="مثلاً: المعادي، القاهرة"
+                    className="w-full bg-slate-50 border border-slate-200 h-12 px-6 rounded-2xl outline-none focus:border-primary-500 font-bold text-slate-700 transition-all" 
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingRequest}
+                  className="w-full h-14 bg-primary-600 text-white font-black rounded-2xl shadow-lg shadow-primary-500/30 hover:bg-primary-700 transition-all disabled:opacity-60"
+                >
+                  {submittingRequest ? 'جاري الإرسال...' : 'تأكيد ونشر طلب الدواء 🚀'}
+                </button>
+              </form>
             </motion.div>
           </motion.div>
         )}
