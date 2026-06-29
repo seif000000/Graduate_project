@@ -76,11 +76,11 @@ function MemberCard({ member, index }) {
       className="group relative bg-white rounded-3xl shadow-lg shadow-slate-200/60 border border-slate-100 overflow-hidden flex flex-col"
     >
       {/* Top gradient bar */}
-      <div className={`h-1.5 w-full bg-gradient-to-r ${member.color}`} />
+      <div className={`h-1.5 w-full bg-gradient-to-r ${color}`} />
 
       {/* Icon badge */}
       <div
-        className={`absolute top-6 left-6 w-10 h-10 rounded-2xl bg-gradient-to-br ${member.color} flex items-center justify-center shadow-lg opacity-90`}
+        className={`absolute top-6 left-6 w-10 h-10 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg opacity-90`}
       >
         <Icon size={18} className="text-white" />
       </div>
@@ -88,14 +88,14 @@ function MemberCard({ member, index }) {
       {/* Photo */}
       <div className="flex justify-center pt-10 pb-4">
         <div className="w-28 h-28 rounded-full ring-4 ring-white shadow-xl overflow-hidden">
-          {member.photo ? (
+          {member.photo_url ? (
             <img
-              src={member.photo}
+              src={member.photo_url}
               alt={member.name}
               className="w-full h-full object-cover"
             />
           ) : (
-            <Avatar name={member.name} color={member.color} />
+            <Avatar name={member.name} color={color} />
           )}
         </div>
       </div>
