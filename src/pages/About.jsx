@@ -205,7 +205,7 @@ export default function About() {
             transition={{ delay: 0.25, duration: 0.6 }}
             className="text-primary-100 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
           >
-            مُسند — منصة تخرج مبادره  تهدف إلى ربط المتبرعين بالدواء بمن يحتاج إليه،
+            مُسند — منصة تخرج مبادره DEPI تهدف إلى ربط المتبرعين بالدواء بمن يحتاج إليه،
             مع دعم ذكي لمرضى السكري وارتفاع ضغط الدم.
           </motion.p>
         </div>
