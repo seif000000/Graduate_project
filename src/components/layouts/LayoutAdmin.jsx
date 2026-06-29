@@ -17,7 +17,8 @@ const adminNav = [
     { label: 'إحصائيات الأدوية', icon: TrendingUp, path: '/admin/analytics' },
     { label: 'سجلات النظام', icon: Activity, path: '/admin/reports' },
   ]},
-  { section: 'الإعدادات', items: [
+  { section: 'الإعدادات والتخصيص', items: [
+    { label: 'إدارة فريق العمل', icon: Users, path: '/admin/team' },
     { label: 'الإعدادات', icon: Settings, path: '/admin/settings' },
   ]},
 ];

@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, medicine, requests, chat, inventory, users, vouchers, medical_history, inbox, dashboard
+from app.api import auth, medicine, requests, chat, inventory, users, vouchers, medical_history, inbox, dashboard, team
 from app.db.database import init_db
 from app.models import feedback  # to register the model
+from app.models.team import TeamMember  # register table
 
 @asynccontextmanager
 async def lifespan(app):
@@ -34,6 +35,7 @@ app.include_router(vouchers.router, prefix=f"{API_V1_STR}/vouchers", tags=["vouc
 app.include_router(medical_history.router, prefix=f"{API_V1_STR}/medical-history", tags=["medical-history"])
 app.include_router(inbox.router, prefix=f"{API_V1_STR}/inbox", tags=["inbox"])
 app.include_router(dashboard.router, prefix=f"{API_V1_STR}/dashboard", tags=["dashboard"])
+app.include_router(team.router, prefix=f"{API_V1_STR}", tags=["team"])
 
 
 @app.get("/")

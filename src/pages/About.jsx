@@ -1,63 +1,10 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Github, Linkedin, Mail, Heart, Code2, Cpu, Globe, BookOpen } from 'lucide-react';
+import { Github, Linkedin, Mail, Heart, Code2, Cpu, Globe, BookOpen, Loader2, Users } from 'lucide-react';
+import { getTeamMembers } from '../api';
 
 // ══════════════════════════════════════════════════════════════
-//  🔧 EDIT YOUR TEAM HERE
-//  - name: اسم العضو
-//  - role: الوظيفة / التخصص
-//  - bio: وصف مختصر
-//  - photo: ضع رابط الصورة هنا (URL أو import من assets)
-//  - github / linkedin / email: روابط التواصل (اتركها فاضية لو مش موجودة)
-// ══════════════════════════════════════════════════════════════
-const TEAM = [
-  {
-    name: 'سيف',
-    role: 'Full-Stack Developer',
-    bio: 'مسؤول عن تطوير الـ Frontend والـ Backend وبنية المشروع الكاملة.',
-    photo: '',   // ← ضع رابط الصورة هنا
-    github: '',
-    linkedin: '',
-    email: '',
-    color: 'from-emerald-400 to-teal-600',
-    icon: Code2,
-  },
-  {
-    name: 'اسم العضو الثاني',
-    role: 'UI/UX Designer',
-    bio: 'مسؤول عن تصميم واجهة المستخدم وتجربة الاستخدام.',
-    photo: '',   // ← ضع رابط الصورة هنا
-    github: '',
-    linkedin: '',
-    email: '',
-    color: 'from-blue-400 to-indigo-600',
-    icon: Globe,
-  },
-  {
-    name: 'اسم العضو الثالث',
-    role: 'AI & Data Specialist',
-    bio: 'مسؤول عن تكامل الذكاء الاصطناعي وتحليل البيانات.',
-    photo: '',   // ← ضع رابط الصورة هنا
-    github: '',
-    linkedin: '',
-    email: '',
-    color: 'from-violet-400 to-purple-600',
-    icon: Cpu,
-  },
-  {
-    name: 'اسم العضو الرابع',
-    role: 'Backend Developer',
-    bio: 'مسؤول عن تطوير الـ API وقاعدة البيانات.',
-    photo: '',   // ← ضع رابط الصورة هنا
-    github: '',
-    linkedin: '',
-    email: '',
-    color: 'from-amber-400 to-orange-500',
-    icon: BookOpen,
-  },
-];
-
-// ══════════════════════════════════════════════════════════════
-//  🔧 PLATFORM STATS
+//  🔧 PLATFORM STATS — عدّل الأرقام هنا
 // ══════════════════════════════════════════════════════════════
 const STATS = [
   { label: 'تبرعات دواء', value: '500+' },
@@ -65,6 +12,17 @@ const STATS = [
   { label: 'صيدلية شريكة', value: '30+' },
   { label: 'استغاثة تم الرد عليها', value: '150+' },
 ];
+
+// Palette for member cards (cycles based on index)
+const COLORS = [
+  'from-emerald-400 to-teal-600',
+  'from-blue-400 to-indigo-600',
+  'from-violet-400 to-purple-600',
+  'from-amber-400 to-orange-500',
+  'from-pink-400 to-rose-500',
+  'from-cyan-400 to-sky-500',
+];
+const ICONS = [Code2, Globe, Cpu, BookOpen, Heart, Users];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -75,7 +33,6 @@ const fadeUp = {
   }),
 };
 
-// Avatar placeholder when no photo provided
 function Avatar({ name, color }) {
   const initials = name
     .trim()
@@ -84,9 +41,7 @@ function Avatar({ name, color }) {
     .join('')
     .slice(0, 2);
   return (
-    <div
-      className={`w-full h-full rounded-full bg-gradient-to-br ${color} flex items-center justify-center`}
-    >
+    <div className={`w-full h-full rounded-full bg-gradient-to-br ${color} flex items-center justify-center`}>
       <span className="text-white text-4xl font-black">{initials}</span>
     </div>
   );
@@ -108,7 +63,8 @@ function SocialLink({ href, icon: Icon, label }) {
 }
 
 function MemberCard({ member, index }) {
-  const Icon = member.icon;
+  const color = COLORS[index % COLORS.length];
+  const Icon = ICONS[index % ICONS.length];
   return (
     <motion.div
       custom={index}
@@ -148,7 +104,7 @@ function MemberCard({ member, index }) {
       <div className="px-6 pb-6 flex flex-col flex-grow text-center">
         <h3 className="text-xl font-black text-slate-800 mb-1">{member.name}</h3>
         <span
-          className={`self-center text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r ${member.color} text-white mb-3`}
+          className={`self-center text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r ${color} text-white mb-3`}
         >
           {member.role}
         </span>
@@ -172,11 +128,20 @@ function MemberCard({ member, index }) {
 }
 
 export default function About() {
+  const [team, setTeam] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getTeamMembers()
+      .then(({ data }) => setTeam(data))
+      .catch(() => setTeam([]))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#FAF9F6]" dir="rtl">
       {/* ── Hero ─────────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-teal-500 text-white">
-        {/* decorative blobs */}
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
         <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-teal-300/10 blur-3xl" />
 
@@ -234,12 +199,7 @@ export default function About() {
 
       {/* ── About the project ─────────────────────────────── */}
       <div className="max-w-3xl mx-auto px-6 py-16 text-center">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-        >
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
           <h2 className="text-3xl font-black text-slate-800 mb-4">عن المشروع</h2>
           <p className="text-slate-600 leading-loose text-base">
             مُسند هو مشروع تخرج تم تطويره كحل مبتكر لمشكلة نقص الأدوية وتكدسها في نفس الوقت.
@@ -253,21 +213,36 @@ export default function About() {
       {/* ── Team ──────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-6 pb-24">
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
           className="text-center mb-12"
         >
           <h2 className="text-3xl font-black text-slate-800 mb-3">فريق العمل</h2>
           <p className="text-slate-500">الفريق الذي بنى مُسند من الصفر</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {TEAM.map((member, i) => (
-            <MemberCard key={i} member={member} index={i} />
-          ))}
-        </div>
+        {/* Loading */}
+        {loading && (
+          <div className="flex justify-center py-16">
+            <Loader2 size={36} className="animate-spin text-primary-500" />
+          </div>
+        )}
+
+        {/* Empty */}
+        {!loading && team.length === 0 && (
+          <div className="text-center py-16 text-slate-400">
+            <Users size={48} className="mx-auto mb-3 opacity-30" />
+            <p>لم يتم إضافة أعضاء الفريق بعد</p>
+          </div>
+        )}
+
+        {/* Cards */}
+        {!loading && team.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {team.map((member, i) => (
+              <MemberCard key={member.id} member={member} index={i} />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Footer note ───────────────────────────────────── */}

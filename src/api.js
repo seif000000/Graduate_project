@@ -124,4 +124,10 @@ export const getInboxChats = () => api.get('/inbox/chats');
 export const getInboxMessages = (userId) => api.get(`/inbox/messages/${userId}`);
 export const sendInboxMessage = (data) => api.post('/inbox/messages', data);
 
+// ─── Team Members ─────────────────────────────────────────────────────────
+export const getTeamMembers = () => api.get('/team/');
+export const createTeamMember = (data) => api.post('/team/', data);
+export const updateTeamMember = (id, data) => api.patch(`/team/${id}`, data);
+export const deleteTeamMember = (id) => api.delete(`/team/${id}`);
+
 export default api;

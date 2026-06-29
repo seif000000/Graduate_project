@@ -40,6 +40,7 @@ import Admin from './pages/Admin';
 import UsersManagement from './pages/UsersManagement';
 import MedicinesAnalytics from './pages/MedicinesAnalytics';
 import Reports from './pages/Reports';
+import TeamManagement from './pages/TeamManagement';
 
 // Pharmacy Pages
 import PharmacyInventory from './pages/PharmacyInventory';
@@ -103,6 +104,11 @@ function App() {
           <Route path="/admin/pharmacies" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <LayoutAdmin title="توثيق الصيدليات"><Admin /></LayoutAdmin>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/team" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LayoutAdmin title="إدارة فريق العمل"><TeamManagement /></LayoutAdmin>
             </ProtectedRoute>
           } />
           <Route path="/admin/settings" element={
