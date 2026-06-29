@@ -172,8 +172,13 @@ const Landing = () => {
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 py-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
-        منصة مُسند &copy; {new Date().getFullYear()}
+      <footer className="border-t border-slate-200 py-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest flex flex-col gap-2 items-center">
+        <div className="flex gap-6">
+          <Link to="/about" className="hover:text-primary-600 transition-colors">من نحن</Link>
+          <Link to="/login" className="hover:text-primary-600 transition-colors">تسجيل الدخول</Link>
+          <Link to="/register" className="hover:text-primary-600 transition-colors">إنشاء حساب</Link>
+        </div>
+        <span>منصة مُسند &copy; {new Date().getFullYear()}</span>
       </footer>
     </div>
   );

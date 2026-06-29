@@ -13,6 +13,7 @@ import LayoutUser from './components/layouts/LayoutUser';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import About from './pages/About';
 
 // User / Shared Pages
 import Search from './pages/Search';
@@ -65,6 +66,7 @@ function App() {
           <Route path="/register" element={
             <GuestRoute><Register /></GuestRoute>
           } />
+          <Route path="/about" element={<About />} />
           <Route path="/unauthorized" element={
             <div className="flex bg-[#FAF9F6] min-h-screen items-center justify-center">
               <div className="text-center space-y-4">
