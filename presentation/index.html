@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مُسند — العرض التقديمي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --p50:#ecfdf5; --p100:#d1fae5; --p200:#a7f3d0; --p300:#6ee7b7; --p400:#34d399;
+    --p500:#10b981; --p600:#059669; --p700:#047857; --p800:#065f46; --p900:#064e3b; --p950:#022c22;
+    --ink:#0f172a; --muted:#64748b; --cream:#FAF9F6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:"Cairo",sans-serif; background:#05140f; color:var(--ink);
+    overflow:hidden; direction:rtl; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:"Tajawal",sans-serif; font-weight:800; line-height:1.15}
+
+  /* Deck */
+  #deck{position:fixed; inset:0}
+  .slide{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    justify-content:center; padding:clamp(28px,6vw,110px);
+    opacity:0; visibility:hidden; transform:scale(1.03);
+    transition:opacity .6s ease, transform .6s ease, visibility .6s;
+    overflow:hidden;
+  }
+  .slide.active{opacity:1; visibility:visible; transform:scale(1)}
+  .slide.dark{background:radial-gradient(1200px 700px at 80% -10%, #0b3b2c 0%, var(--p950) 45%, #04120d 100%); color:#fff}
+  .slide.deep{background:radial-gradient(1000px 700px at 15% 110%, #0b3b2c 0%, var(--p950) 55%, #051611 100%); color:#fff}
+  .slide.light{background:linear-gradient(160deg,#ffffff 0%, var(--cream) 55%, #eefaf4 100%)}
+  .slide.emerald{background:linear-gradient(150deg,var(--p600) 0%, var(--p800) 60%, var(--p950) 100%); color:#fff}
+
+  /* Entrance animation for active slide children */
+  .slide .rise{opacity:0; transform:translateY(26px)}
+  .slide.active .rise{animation:rise .8s cubic-bezier(.16,1,.3,1) forwards}
+  .slide.active .rise.d1{animation-delay:.10s}
+  .slide.active .rise.d2{animation-delay:.22s}
+  .slide.active .rise.d3{animation-delay:.34s}
+  .slide.active .rise.d4{animation-delay:.46s}
+  .slide.active .rise.d5{animation-delay:.58s}
+  .slide.active .rise.d6{animation-delay:.70s}
+  @keyframes rise{to{opacity:1; transform:none}}
+
+  .kicker{display:inline-flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.18em;
+    font-size:clamp(11px,1vw,13px); text-transform:uppercase; padding:8px 16px; border-radius:999px;
+    background:rgba(16,185,129,.12); color:var(--p400); border:1px solid rgba(52,211,153,.25); width:fit-content}
+  .slide.light .kicker{background:var(--p50); color:var(--p700); border-color:var(--p200)}
+  .title{font-size:clamp(30px,5.4vw,74px); letter-spacing:-.02em}
+  .lead{font-size:clamp(16px,1.9vw,25px); line-height:1.9; color:var(--muted); max-width:60ch; font-weight:500}
+  .slide.dark .lead,.slide.deep .lead,.slide.emerald .lead{color:rgba(255,255,255,.75)}
+  .accent{color:var(--p500)}
+  .slide.dark .accent,.slide.deep .accent{color:var(--p400)}
+
+  /* Logo mark */
+  .brand{display:flex; align-items:center; gap:16px}
+  .mark{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--p400),var(--p600)); box-shadow:0 18px 40px rgba(16,185,129,.35); flex-shrink:0}
+  .mark svg{width:34px;height:34px}
+  .brand .name{font-family:"Tajawal";font-weight:900;font-size:clamp(26px,3vw,40px);line-height:1}
+  .brand .name span{display:block;font-family:"Cairo";font-weight:600;font-size:13px;letter-spacing:.2em;color:var(--p400);margin-top:6px}
+
+  /* Grids & cards */
+  .grid{display:grid; gap:clamp(14px,1.6vw,22px)}
+  .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  .card{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); border-radius:22px;
+    padding:clamp(18px,1.8vw,26px); backdrop-filter:blur(8px)}
+  .slide.light .card{background:#fff; border-color:#eef2f0; box-shadow:0 12px 40px rgba(2,44,34,.06)}
+  .card .ico{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:26px;
+    background:rgba(16,185,129,.14); margin-bottom:14px}
+  .slide.light .card .ico{background:var(--p50)}
+  .card h4{font-size:clamp(16px,1.4vw,20px); margin-bottom:6px}
+  .card p{font-size:clamp(12px,1vw,14.5px); color:var(--muted); line-height:1.7; font-weight:500}
+  .slide.dark .card p,.slide.deep .card p{color:rgba(255,255,255,.62)}
+
+  .stat{font-family:"Tajawal";font-weight:900;font-size:clamp(34px,5vw,64px);line-height:1;background:linear-gradient(120deg,var(--p300),var(--p500));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .statlabel{font-size:13px;color:var(--muted);font-weight:700;margin-top:8px}
+
+  .steps{display:flex;gap:18px;flex-wrap:wrap}
+  .step{flex:1 1 200px;position:relative}
+  .stepnum{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+    display:grid;place-items:center;font-family:"Tajawal";font-weight:900;font-size:20px;color:var(--p400);margin-bottom:14px}
+  .slide.light .stepnum{background:var(--p50);border-color:var(--p200);color:var(--p700)}
+
+  .pill{display:inline-block;padding:8px 16px;border-radius:999px;font-weight:700;font-size:13px;margin:4px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e8fff6}
+  .slide.light .pill{background:#fff;border-color:var(--p200);color:var(--p800)}
+
+  .flow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .flow .node{padding:12px 18px;border-radius:14px;font-weight:800;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+  .flow .arrow{color:var(--p400);font-size:22px;font-weight:900}
+
+  /* Ambient blobs */
+  .blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.4;pointer-events:none}
+  .b1{width:520px;height:520px;background:#0f9d6e;top:-140px;left:-120px}
+  .b2{width:420px;height:420px;background:#065f46;bottom:-160px;right:-100px;opacity:.5}
+  .rings{position:absolute;inset:0;background-image:radial-gradient(circle at 85% 15%,rgba(16,185,129,.10),transparent 40%);pointer-events:none}
+  .cross-bg{position:absolute;font-size:min(60vw,760px);left:-6%;bottom:-24%;opacity:.05;transform:rotate(12deg);pointer-events:none;user-select:none}
+
+  /* Progress + nav */
+  #bar{position:fixed;top:0;right:0;height:4px;background:linear-gradient(90deg,var(--p400),var(--p600));z-index:40;transition:width .5s ease}
+  #nav{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:40}
+  .navbtn{width:46px;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);
+    color:#fff;font-size:20px;cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(8px);transition:.2s}
+  .navbtn:hover{background:var(--p600);border-color:var(--p600)}
+  .dots{display:flex;gap:8px}
+  .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.28);cursor:pointer;transition:.3s}
+  .dot.on{background:var(--p400);width:26px;border-radius:6px}
+  #counter{position:fixed;top:22px;left:30px;z-index:40;font-family:"Tajawal";font-weight:800;color:rgba(255,255,255,.55);font-size:14px;letter-spacing:.1em}
+  .slide.light ~ #counter{color:#0f172a}
+  #hint{position:fixed;bottom:30px;right:30px;z-index:40;color:rgba(255,255,255,.4);font-size:12px;font-weight:700}
+
+  @media(max-width:820px){
+    .g3,.g4{grid-template-columns:repeat(2,1fr)} .g2{grid-template-columns:1fr}
+    .lead{font-size:16px} #hint{display:none}
+    .split{flex-direction:column}
+  }
+  .split{display:flex;gap:clamp(22px,4vw,60px);align-items:center}
+  .split>div{flex:1}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="counter">01 / 17</div>
+
+<div id="deck">
+
+  <!-- 1 — TITLE -->
+  <section class="slide dark active">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="rings"></div>
+    <div class="cross-bg">✚</div>
+    <div class="brand rise d1">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 9-4-0.7-7-4.6-7-9V6l7-3z" fill="#fff" opacity=".95"/><path d="M12 8v6M9 11h6" stroke="#059669" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="name">مُسند<span>MUSNAD · HEALTH PLATFORM</span></div>
+    </div>
+    <h1 class="title rise d2" style="margin-top:40px">شارك الدواء،<br><span class="accent">أنقذ حياة.</span></h1>
+    <p class="lead rise d3" style="margin-top:24px">منصّة رقمية تربط بين مَن يملك دواءً فائضاً ومَن هو في أمسّ الحاجة إليه — مدعومة بالذكاء الاصطناعي، وبنيت لتصل بالدواء إلى مستحقيه في الوقت المناسب.</p>
+    <div class="rise d4" style="margin-top:40px;display:flex;gap:12px;flex-wrap:wrap">
+      <span class="pill">🤝 تبرّع بالأدوية</span>
+      <span class="pill">📸 تعرّف بالكاميرا على الدواء</span>
+      <span class="pill">🚨 لوحة استغاثة عاجلة</span>
+      <span class="pill">🧠 مساعد صحي ذكي</span>
+    </div>
+  </section>
+
+  <!-- 2 — THE STORY / GAZA -->
+  <section class="slide deep">
+    <div class="blob b2"></div>
+    <div class="kicker rise d1">القصّة — من أين بدأت الفكرة</div>
+    <h2 class="title rise d2" style="margin-top:22px;font-size:clamp(28px,4.6vw,60px)">حين أصبح الدواء<br>أغلى من أن يُوجد.</h2>
+    <p class="lead rise d3" style="margin-top:22px">
+      في <b style="color:#fff">غزّة</b>، ومع اشتداد الأزمة، وقف الناس أمام أزمةٍ لا تُحتمل: مرضى مزمنون بلا جرعاتهم،
+      وإصابات تنتظر مسكّناً، وصيدليات فارغة الرفوف. لم تكن المشكلة دائماً في انعدام الدواء فحسب —
+      بل في أنّ الدواء المتوفّر لم يكن يصل إلى مَن يحتاجه في الوقت المناسب.
+    </p>
+    <p class="lead rise d4" style="margin-top:14px">
+      من رحم هذه المأساة وُلدت فكرة <span class="accent" style="font-weight:800">مُسند</span>: ماذا لو استطعنا أن نربط،
+      بسرعة وأمان، بين كل جرعةٍ فائضة وكل يدٍ ممدودة تطلبها؟
+    </p>
+  </section>
+
+  <!-- 3 — THE PROBLEM -->
+  <section class="slide light">
+    <div class="kicker rise d1">المشكلة</div>
+    <h2 class="title rise d2" style="margin-top:18px;color:var(--ink)">فجوة قاتلة بين <span class="accent">الفائض</span> و<span class="accent">الحاجة</span></h2>
+    <div class="grid g3 rise d3" style="margin-top:44px">
+      <div class="card">
+        <div class="ico">💊</div><h4>دواءٌ يُهدَر</h4>
+        <p>ملايين العلب الفائضة أو قريبة الانتهاء تنتهي في القمامة داخل المنازل والصيدليات، بينما يحتاجها آخرون.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🔍</div><h4>مريضٌ لا يجد</h4>
+        <p>مرضى السكري والضغط والحالات الحرجة يبحثون لساعات عن دواءٍ محدّد دون معرفة أين يتوفّر أو مَن يملكه.</p>
+      </div>
+      <div class="card">
+        <div class="ico">⏱️</div><h4>وقتٌ حرِج</h4>
+        <p>في الطوارئ، دقائق التأخير قد تكلّف حياة. لا توجد قناة سريعة وموثوقة تجمع المتبرّع بالمحتاج.</p>
+      </div>
+    </div>
+    <p class="lead rise d4" style="margin-top:34px;color:var(--muted)">الدواء موجود… لكنه في المكان الخطأ، في الوقت الخطأ، بلا جسرٍ يوصله. <b class="accent">مُسند هو ذلك الجسر.</b></p>
+  </section>
+
+  <!-- 4 — THE SOLUTION -->
+  <section class="slide emerald">
+    <div class="rings"></div><div class="cross-bg">✚</div>
+    <div class="kicker rise d1" style="background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.25)">الحل</div>
+    <h2 class="title rise d2" style="margin-top:20px">منظومة واحدة تُدير رحلة الدواء<br>من التبرّع حتى التسليم.</h2>
+    <div class="flow rise d3" style="margin-top:44px">
+      <span class="node">🎁 متبرّع بدواء فائض</span>
+      <span class="arrow">←</span>
+      <span class="node">🧠 توثيق ذكي وتحديد موقع</span>
+      <span class="arrow">←</span>
+      <span class="node">🔎 بحث ومطابقة</span>
+      <span class="arrow">←</span>
+      <span class="node">❤️ مريضٌ يستلم دواءه</span>
+    </div>
+    <div class="grid g3 rise d4" style="margin-top:46px">
+      <div class="card"><h4>🤝 للأفراد</h4><p>تبرّع بأدويتك الزائدة أو اطلب ما تحتاجه، وتواصل مباشرةً وبأمان.</p></div>
+      <div class="card"><h4>🏥 للصيدليات</h4><p>أدِر مخزونك، ووزّع الأدوية قرب الانتهاء قبل فوات الأوان، وقدّم خصومات مجتمعية.</p></div>
+      <div class="card"><h4>🛡️ للإشراف</h4><p>توثيق الصيدليات، مراجعة البلاغات، وإحصاءات حيّة لضمان النزاهة والأمان.</p></div>
+    </div>
+  </section>
+
+  <!-- 5 — HOW IT WORKS -->
+  <section class="slide dark">
+    <div class="blob b1"></div>
+    <div class="kicker rise d1">كيف تعمل</div>
+    <h2 class="title rise d2" style="margin-top:18px">ثلاث خطوات… ووصل الدواء.</h2>
+    <div class="steps rise d3" style="margin-top:50px">
+      <div class="step"><div class="stepnum">١</div><h4>صوّر الدواء 📸</h4><p class="lead" style="font-size:16px;margin-top:8px">التقط صورة لعلبة الدواء، وسيتعرّف الذكاء الاصطناعي تلقائياً على الاسم والمادة الفعّالة وتاريخ الصلاحية.</p></div>
+      <div class="step"><div class="stepnum">٢</div><h4>ابحث وطابِق 🔎</h4><p class="lead" style="font-size:16px;margin-top:8px">اعثر على الدواء لدى متبرّعين وصيدليات قريبة منك، مرتّبةً حسب الأقرب جغرافياً.</p></div>
+      <div class="step"><div class="stepnum">٣</div><h4>تواصل واستلم ❤️</h4><p class="lead" style="font-size:16px;margin-top:8px">راسِل المتبرّع مباشرةً عبر المنصّة، ونسّق التسليم عبر أقرب صيدلية مشاركة أو توصيلاً مباشراً.</p></div>
+    </div>
+  </section>
+
+  <!-- 6 — FEATURES GRID -->
+  <section class="slide light">
+    <div class="kicker rise d1">الميزات</div>
+    <h2 class="title rise d2" style="margin-top:16px;color:var(--ink)">منصّة متكاملة، لا مجرّد صفحة.</h2>
+    <div class="grid g4 rise d3" style="margin-top:40px">
+      <div class="card"><div class="ico">📸</div><h4>تعرّف بالكاميرا</h4><p>تحديد الدواء من صورته عبر رؤية الذكاء الاصطناعي.</p></div>
+      <div class="card"><div class="ico">🧠</div><h4>مساعد صحي ذكي</h4><p>إرشاد مخصّص لمرضى السكري والضغط على مدار الساعة.</p></div>
+      <div class="card"><div class="ico">🚨</div><h4>لوحة استغاثة</h4><p>نشر طلبات الأدوية العاجلة وتلقّي الردود فوراً.</p></div>
+      <div class="card"><div class="ico">🗺️</div><h4>بحث بالموقع</h4><p>نتائج مرتّبة حسب المسافة مع خريطة تفاعلية.</p></div>
+      <div class="card"><div class="ico">🏥</div><h4>إدارة المخزون</h4><p>للصيدليات: أصناف، تنبيه قرب الانتهاء، وتسعير.</p></div>
+      <div class="card"><div class="ico">💬</div><h4>محادثات مباشرة</h4><p>تواصل آمن بين المتبرّع والمريض داخل المنصّة.</p></div>
+      <div class="card"><div class="ico">🎟️</div><h4>كوبونات وخصومات</h4><p>صرف مجاني أو مخفّض للحالات المستحقّة.</p></div>
+      <div class="card"><div class="ico">📊</div><h4>لوحة إشراف</h4><p>مستخدمون، توثيق، بلاغات، وتحليلات حيّة.</p></div>
+    </div>
+  </section>
+
+  <!-- 6B — MORE FEATURES -->
+  <section class="slide dark">
+    <div class="blob b2"></div>
+    <div class="kicker rise d1">الميزات · تتمّة</div>
+    <h2 class="title rise d2" style="margin-top:16px">وأكثر — منظومة خدمات لا تتوقّف.</h2>
+    <div class="grid g4 rise d3" style="margin-top:40px">
+      <div class="card"><div class="ico">🌐</div><h4>واجهة ثنائية اللغة</h4><p>عربي وإنجليزي بتبديلٍ فوري واتجاه صفحةٍ تلقائي RTL/LTR لكل عنصر.</p></div>
+      <div class="card"><div class="ico">⭐</div><h4>تقييم المتبرّعين</h4><p>نظام تقييم بخمس نجوم يبني الثقة ويُبرز المتبرّعين الموثوقين.</p></div>
+      <div class="card"><div class="ico">🎟️</div><h4>محفظة الكوبونات</h4><p>كوبونات خصمٍ ومجانية قابلة للصرف لدى الصيدليات الشريكة.</p></div>
+      <div class="card"><div class="ico">📋</div><h4>السجل الطبي</h4><p>حفظ الحالات المزمنة والتقارير الطبية للرجوع إليها بسهولة.</p></div>
+      <div class="card"><div class="ico">🔔</div><h4>مركز الإشعارات</h4><p>تنبيهات فورية بالطلبات والردود وحالة كل عملية.</p></div>
+      <div class="card"><div class="ico">⏳</div><h4>تنبيه قرب الانتهاء</h4><p>رصد الأدوية قبل انتهاء صلاحيتها وإتاحتها في الوقت المناسب.</p></div>
+      <div class="card"><div class="ico">👥</div><h4>إدارة فريق العمل</h4><p>إضافة أعضاء الفريق وأدوارهم ديناميكياً من لوحة الإدارة.</p></div>
+      <div class="card"><div class="ico">📈</div><h4>تحليلات حيّة</h4><p>لوحات إحصائية للأدمن والصيدليات لقياس الأثر والأداء.</p></div>
+    </div>
+  </section>
+
+  <!-- 7 — AI HIGHLIGHT -->
+  <section class="slide deep">
+    <div class="blob b1"></div><div class="rings"></div>
+    <div class="split">
+      <div>
+        <div class="kicker rise d1">الميزة الأبرز · الذكاء الاصطناعي</div>
+        <h2 class="title rise d2" style="margin-top:18px;font-size:clamp(28px,4.4vw,58px)">صوّر الدواء…<br>ودَع الباقي علينا.</h2>
+        <p class="lead rise d3" style="margin-top:20px">تقرأ رؤية الذكاء الاصطناعي علبة الدواء وتستخرج الاسم التجاري، المادة الفعّالة، التركيز، وتاريخ الصلاحية — دون إدخالٍ يدوي.</p>
+        <div class="rise d4" style="margin-top:24px">
+          <p style="font-weight:800;color:#fff;margin-bottom:12px">مرونة لا تتوقّف — نظام تحويل تلقائي بين مزوّدي الذكاء الاصطناعي:</p>
+          <div class="flow">
+            <span class="node">Gemini</span><span class="arrow">←</span>
+            <span class="node">ChatGPT</span><span class="arrow">←</span>
+            <span class="node">Groq</span>
+          </div>
+          <p class="lead" style="font-size:14.5px;margin-top:14px">إن نفد رصيد أحد المزوّدين، تنتقل الخدمة تلقائياً إلى التالي — فلا تتوقّف أبداً.</p>
+        </div>
+      </div>
+      <div class="rise d3">
+        <div class="card" style="background:rgba(255,255,255,.06)">
+          <div style="font-size:13px;color:var(--p400);font-weight:800;letter-spacing:.15em">نتيجة التحليل الآني</div>
+          <div style="margin-top:14px;display:flex;align-items:center;gap:14px">
+            <div style="width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:28px">💊</div>
+            <div><div style="font-family:'Tajawal';font-weight:900;font-size:24px;color:#fff">Augmentin 1g</div><div style="color:var(--p300);font-size:13px;font-weight:700">Amoxicillin / Clavulanic acid</div></div>
+          </div>
+          <div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+            <div style="background:rgba(255,255,255,.05);padding:12px;border-radius:12px"><div style="color:rgba(255,255,255,.5)">التركيز</div><div style="font-weight:800;color:#fff">1g</div></div>
+            <div style="background:rgba(255,255,255,.05);padding:12px;border-radius:12px"><div style="color:rgba(255,255,255,.5)">الصلاحية</div><div style="font-weight:800;color:#fff">2026-08</div></div>
+          </div>
+          <div style="margin-top:14px;font-size:12px;color:var(--p300);font-weight:800">✓ تم التعرّف عبر Groq Vision</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7B — BILINGUAL -->
+  <section class="slide emerald">
+    <div class="rings"></div><div class="cross-bg">✚</div>
+    <div class="kicker rise d1" style="background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.25)">تجربة عربية أصيلة · لغتان</div>
+    <h2 class="title rise d2" style="margin-top:20px">منصّةٌ تتحدّث لغتك.</h2>
+    <p class="lead rise d3" style="margin-top:22px;color:rgba(255,255,255,.85)">
+      عربيّةٌ بالكامل مع دعمٍ إنجليزيّ كامل — تبديلٌ فوريّ بين اللغتين بنقرةٍ واحدة، واتجاه صفحةٍ تلقائيّ
+      (RTL للعربية، LTR للإنجليزية) يُعيد ترتيب كل زرٍّ وأيقونةٍ وتخطيطٍ في الواجهة.
+    </p>
+    <div class="grid g4 rise d4" style="margin-top:40px">
+      <div class="card"><h4>+1000 نص مُترجَم</h4><p style="color:rgba(255,255,255,.7)">كل صفحةٍ ومكوّنٍ في المنصّة.</p></div>
+      <div class="card"><h4>تبديل بنقرة</h4><p style="color:rgba(255,255,255,.7)">تغيير اللغة يحفظ تفضيلك تلقائياً.</p></div>
+      <div class="card"><h4>اتجاه تلقائي</h4><p style="color:rgba(255,255,255,.7)">انعكاسٌ كاملٌ للتخطيط بين RTL وLTR.</p></div>
+      <div class="card"><h4>خطوط عربية محسّنة</h4><p style="color:rgba(255,255,255,.7)">Cairo وTajawal لأناقةٍ وقراءةٍ مريحة.</p></div>
+    </div>
+  </section>
+
+  <!-- 8 — THREE ROLES -->
+  <section class="slide light">
+    <div class="kicker rise d1">ثلاثة أدوار · نظام صلاحيات كامل</div>
+    <h2 class="title rise d2" style="margin-top:16px;color:var(--ink)">تجربة مصمّمة لكل مستخدم.</h2>
+    <div class="grid g3 rise d3" style="margin-top:44px">
+      <div class="card" style="border-top:4px solid var(--p500)">
+        <div class="ico">👤</div><h4>المريض / المتبرّع</h4>
+        <p>البحث والتبرّع، الاستغاثات، المساعد الصحي، الكوبونات، السجل الطبي، والمحادثات.</p>
+      </div>
+      <div class="card" style="border-top:4px solid #0284c7">
+        <div class="ico">🏥</div><h4>الصيدلية</h4>
+        <p>إدارة المخزون، الأدوية قرب الانتهاء، التحكّم في الأسعار، وإحصاءات الأداء المجتمعي.</p>
+      </div>
+      <div class="card" style="border-top:4px solid #dc2626">
+        <div class="ico">🛡️</div><h4>المشرف (Admin)</h4>
+        <p>إدارة المستخدمين، توثيق الصيدليات، البلاغات، فريق العمل، والتحليلات الحيّة.</p>
+      </div>
+    </div>
+    <p class="lead rise d4" style="margin-top:30px;color:var(--muted)">حماية كاملة عبر <b class="accent">JWT</b> ومسارات محمية حسب الدور — كلٌّ يرى ما يخصّه فقط.</p>
+  </section>
+
+  <!-- 8B — PAGES BY ROLE -->
+  <section class="slide dark">
+    <div class="blob b1"></div>
+    <div class="kicker rise d1">خريطة الوظائف · +30 صفحة</div>
+    <h2 class="title rise d2" style="margin-top:16px">كلُّ دورٍ وله عالَمه الكامل.</h2>
+    <div class="grid g3 rise d3" style="margin-top:40px;align-items:start">
+      <div class="card" style="border-top:4px solid var(--p500)">
+        <h4 style="margin-bottom:14px">👤 المريض / المتبرّع</h4>
+        <div>
+          <span class="pill">الرئيسية</span><span class="pill">البحث</span><span class="pill">الخريطة</span>
+          <span class="pill">التبرّع</span><span class="pill">لوحتي</span><span class="pill">طلباتي</span>
+          <span class="pill">تبرّعاتي</span><span class="pill">السجل الطبي</span><span class="pill">الكوبونات</span>
+          <span class="pill">الطوارئ</span><span class="pill">المساعد الصحي</span><span class="pill">المجتمع</span>
+          <span class="pill">الرسائل</span><span class="pill">الإشعارات</span>
+        </div>
+      </div>
+      <div class="card" style="border-top:4px solid #0284c7">
+        <h4 style="margin-bottom:14px">🏥 الصيدلية</h4>
+        <div>
+          <span class="pill">إدارة المخزون</span><span class="pill">قرب الانتهاء</span>
+          <span class="pill">الإحصائيات</span><span class="pill">التحكّم بالأسعار</span>
+          <span class="pill">الملف والتوثيق</span>
+        </div>
+      </div>
+      <div class="card" style="border-top:4px solid #dc2626">
+        <h4 style="margin-bottom:14px">🛡️ المشرف</h4>
+        <div>
+          <span class="pill">لوحة التحكّم</span><span class="pill">المستخدمون</span>
+          <span class="pill">تحليلات الأدوية</span><span class="pill">البلاغات</span>
+          <span class="pill">فريق العمل</span><span class="pill">توثيق الصيدليات</span>
+          <span class="pill">الإعدادات</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 — TECH STACK -->
+  <section class="slide dark">
+    <div class="blob b2"></div>
+    <div class="kicker rise d1">البنية التقنية</div>
+    <h2 class="title rise d2" style="margin-top:16px">هندسةٌ حديثة، جاهزة للتوسّع.</h2>
+    <div class="split rise d3" style="margin-top:40px;align-items:flex-start">
+      <div>
+        <h4 style="color:var(--p400);margin-bottom:16px">الواجهة الأمامية</h4>
+        <div><span class="pill">React 19</span><span class="pill">Vite</span><span class="pill">Tailwind CSS 4</span><span class="pill">Framer Motion</span><span class="pill">React Router</span><span class="pill">Leaflet Maps</span><span class="pill">RTL عربي كامل</span></div>
+      </div>
+      <div>
+        <h4 style="color:var(--p400);margin-bottom:16px">الخادم وقواعد البيانات</h4>
+        <div><span class="pill">FastAPI</span><span class="pill">SQLModel</span><span class="pill">PostgreSQL</span><span class="pill">JWT Auth</span><span class="pill">REST API</span><span class="pill">AI Vision (Gemini · Groq)</span></div>
+      </div>
+    </div>
+    <div class="grid g4 rise d4" style="margin-top:44px">
+      <div><div class="stat">3</div><div class="statlabel">أدوار مستخدمين متكاملة</div></div>
+      <div><div class="stat">30+</div><div class="statlabel">صفحة ووظيفة</div></div>
+      <div><div class="stat">4</div><div class="statlabel">مزوّدات ذكاء اصطناعي احتياطية</div></div>
+      <div><div class="stat">100%</div><div class="statlabel">متجاوب وRTL</div></div>
+    </div>
+  </section>
+
+  <!-- 9B — ARCHITECTURE -->
+  <section class="slide light">
+    <div class="kicker rise d1">البنية التقنية · المعماريّة</div>
+    <h2 class="title rise d2" style="margin-top:16px;color:var(--ink)">كيف تتدفّق البيانات داخل مُسند.</h2>
+    <div class="flow rise d3" style="margin-top:46px">
+      <span class="node" style="background:var(--p50);border-color:var(--p200);color:var(--p800)">🖥️ واجهة React (SPA)</span>
+      <span class="arrow">←</span>
+      <span class="node" style="background:var(--p50);border-color:var(--p200);color:var(--p800)">🔌 REST API — FastAPI</span>
+      <span class="arrow">←</span>
+      <span class="node" style="background:var(--p50);border-color:var(--p200);color:var(--p800)">🗄️ PostgreSQL</span>
+    </div>
+    <div class="grid g3 rise d4" style="margin-top:44px">
+      <div class="card"><div class="ico">🖥️</div><h4>طبقة العرض</h4><p>واجهةٌ تفاعليةٌ أحاديّة الصفحة بReact، تتواصل عبر axios مع الخادم وتُدير حالتها محلياً.</p></div>
+      <div class="card"><div class="ico">🔌</div><h4>طبقة الخدمات</h4><p>خادم FastAPI يوفّر +60 مساراً منظّماً في 11 وحدة، مع تحقّقٍ ومصادقةٍ لكل طلب.</p></div>
+      <div class="card"><div class="ico">🧠</div><h4>طبقة الذكاء</h4><p>خدمات Gemini للرؤية والمحادثة، تُستدعى من الخادم مع بديلٍ مباشرٍ من المتصفّح.</p></div>
+    </div>
+  </section>
+
+  <!-- 9C — BACKEND DEEP DIVE -->
+  <section class="slide deep">
+    <div class="blob b1"></div><div class="rings"></div>
+    <div class="kicker rise d1">الخادم · تفصيلٌ تقني</div>
+    <h2 class="title rise d2" style="margin-top:16px">قلبٌ منظّمٌ وقابلٌ للتوسّع.</h2>
+    <div class="grid g4 rise d3" style="margin-top:38px">
+      <div><div class="stat">11</div><div class="statlabel">وحدة API</div></div>
+      <div><div class="stat">60+</div><div class="statlabel">مسار REST</div></div>
+      <div><div class="stat">11</div><div class="statlabel">نموذج بيانات</div></div>
+      <div><div class="stat">JWT</div><div class="statlabel">مصادقةٌ آمنة</div></div>
+    </div>
+    <div class="rise d4" style="margin-top:34px">
+      <p style="font-weight:800;color:#fff;margin-bottom:10px">وحدات الواجهة البرمجية:</p>
+      <div>
+        <span class="pill">المصادقة</span><span class="pill">المستخدمون</span><span class="pill">الأدوية</span>
+        <span class="pill">الطلبات</span><span class="pill">المخزون</span><span class="pill">الكوبونات</span>
+        <span class="pill">الرسائل</span><span class="pill">اللوحة</span><span class="pill">السجل الطبي</span>
+        <span class="pill">الفريق</span><span class="pill">المحادثة الذكية</span>
+      </div>
+      <p style="font-weight:800;color:#fff;margin:16px 0 10px">نماذج البيانات:</p>
+      <div>
+        <span class="pill">مستخدم</span><span class="pill">دواء</span><span class="pill">تبرّع</span>
+        <span class="pill">طلب</span><span class="pill">تقييم</span><span class="pill">رسالة</span>
+        <span class="pill">إشعار</span><span class="pill">بلاغ</span><span class="pill">كوبون</span>
+        <span class="pill">فريق</span><span class="pill">سجل طبي</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9D — SECURITY -->
+  <section class="slide light">
+    <div class="kicker rise d1">الأمان والخصوصية</div>
+    <h2 class="title rise d2" style="margin-top:16px;color:var(--ink)">ثقةٌ مبنيّةٌ في التصميم.</h2>
+    <div class="grid g4 rise d3" style="margin-top:42px">
+      <div class="card"><div class="ico">🔐</div><h4>مصادقة JWT</h4><p>رموز دخولٍ مؤمّنة لكل جلسة، دون كشف كلمات المرور.</p></div>
+      <div class="card"><div class="ico">🛡️</div><h4>مسارات محمية بالدور</h4><p>كلُّ مستخدمٍ يصل فقط لما يخصّ دوره — مريض، صيدلية، أو مشرف.</p></div>
+      <div class="card"><div class="ico">✅</div><h4>توثيق الصيدليات</h4><p>مراجعةٌ يدويّةٌ للترخيص قبل تفعيل حساب أيّ صيدلية.</p></div>
+      <div class="card"><div class="ico">🔒</div><h4>تشفير كلمات المرور</h4><p>تجزئةٌ آمنة (hashing) لكلمات المرور داخل قاعدة البيانات.</p></div>
+    </div>
+    <p class="lead rise d4" style="margin-top:32px;color:var(--muted)">النزاهة ليست ميزةً إضافيةً في مُسند — بل أساسٌ في كل طبقةٍ من طبقاته.</p>
+  </section>
+
+  <!-- 10 — IMPACT / VISION -->
+  <section class="slide emerald">
+    <div class="rings"></div><div class="cross-bg">✚</div>
+    <div class="kicker rise d1" style="background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.25)">الأثر والرؤية</div>
+    <h2 class="title rise d2" style="margin-top:20px">كل علبة دواءٍ لا تُهدَر…<br>قد تكون حياةً تُنقَذ.</h2>
+    <p class="lead rise d3" style="margin-top:22px;color:rgba(255,255,255,.85)">
+      بدأت الفكرة من وجع غزّة، لكن الحاجة عالمية: مخيّمات لجوء، مناطق منكوبة، وأحياء فقيرة في كل مكان.
+      مُسند نموذجٌ قابلٌ للتوسّع يحوّل الفائض إلى إغاثة — بكرامةٍ وسرعةٍ وشفافية.
+    </p>
+    <div class="grid g3 rise d4" style="margin-top:40px">
+      <div class="card"><h4>♻️ تقليل الهدر</h4><p style="color:rgba(255,255,255,.7)">إعادة توجيه الأدوية الصالحة بدل إتلافها.</p></div>
+      <div class="card"><h4>⚡ استجابة أسرع</h4><p style="color:rgba(255,255,255,.7)">قناة طوارئ تصل المحتاج بالمتبرّع في دقائق.</p></div>
+      <div class="card"><h4>🌍 قابل للتوسّع</h4><p style="color:rgba(255,255,255,.7)">جاهز للانتشار في أي مجتمع أو منطقة أزمة.</p></div>
+    </div>
+  </section>
+
+  <!-- 11 — CLOSING -->
+  <section class="slide dark">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="rings"></div><div class="cross-bg">✚</div>
+    <div class="brand rise d1">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 9-4-0.7-7-4.6-7-9V6l7-3z" fill="#fff" opacity=".95"/><path d="M12 8v6M9 11h6" stroke="#059669" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="name">مُسند<span>MUSNAD</span></div>
+    </div>
+    <h2 class="title rise d2" style="margin-top:36px;font-size:clamp(30px,5vw,68px)">لأنّ الدواء حقٌّ للجميع.</h2>
+    <p class="lead rise d3" style="margin-top:20px">انضمّ إلينا — تبرّع بدواء، أو ساعد في إيصاله. معاً نبني شبكةً إنسانيةً لا تترك أحداً بلا دواء.</p>
+    <div class="rise d4" style="margin-top:38px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+      <span style="background:linear-gradient(150deg,var(--p400),var(--p600));color:#fff;font-weight:800;padding:16px 32px;border-radius:16px;font-size:18px;box-shadow:0 16px 40px rgba(16,185,129,.35)">ابدأ الآن — شارك الدواء، أنقذ حياة</span>
+      <span class="pill" style="font-size:14px">musnad.org</span>
+    </div>
+  </section>
+
+</div>
+
+<div id="nav">
+  <button class="navbtn" id="prev" aria-label="السابق">›</button>
+  <div class="dots" id="dots"></div>
+  <button class="navbtn" id="next" aria-label="التالي">‹</button>
+</div>
+<div id="hint">استخدم ← → أو المسافة للتنقّل</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const dotsWrap=document.getElementById('dots');
+  const bar=document.getElementById('bar');
+  const counter=document.getElementById('counter');
+  let i=0;
+  slides.forEach((_,k)=>{const d=document.createElement('div');d.className='dot'+(k===0?' on':'');d.onclick=()=>go(k);dotsWrap.appendChild(d);});
+  const dots=[...document.querySelectorAll('.dot')];
+  const pad=n=>String(n).padStart(2,'0');
+  function go(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    dots.forEach((d,k)=>d.classList.toggle('on',k===i));
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    counter.textContent=pad(i+1)+' / '+pad(slides.length);
+    // counter color on light slides
+    counter.style.color = slides[i].classList.contains('light') ? '#0f172a' : 'rgba(255,255,255,.55)';
+  }
+  const next=()=>go(i+1), prev=()=>go(i-1);
+  document.getElementById('next').onclick=next;
+  document.getElementById('prev').onclick=prev;
+  // In RTL, ArrowRight = previous, ArrowLeft = next
+  addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'||e.key===' '||e.key==='PageDown'){e.preventDefault();next();}
+    if(e.key==='ArrowRight'||e.key==='PageUp'){e.preventDefault();prev();}
+    if(e.key==='Home')go(0); if(e.key==='End')go(slides.length-1);
+  });
+  let sx=0;
+  addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+  addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>50){dx<0?next():prev();}},{passive:true});
+  bar.style.width=(1/slides.length*100)+'%';
+</script>
+</body>
+</html>
