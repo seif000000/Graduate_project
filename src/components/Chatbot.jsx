@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, X, Bot, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { askGemini } from '../services/gemini';
+import { useLang } from '../context/LanguageContext';
 
 const Chatbot = () => {
+  const { t, dir } = useLang();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'bot', content: 'أهلاً بك في منصة مُسند 💚 أنا مساعدك الطبي الذكي المتخصص في السكري وضغط الدم المرتفع. كيف يمكنني مساعدتك اليوم؟' }
+  const [messages, setMessages] = useState(() => [
+    { role: 'bot', content: t('chatbot.welcome') }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -33,7 +35,7 @@ const Chatbot = () => {
       console.error('Gemini Error:', error);
       setMessages(prev => [...prev, {
         role: 'bot',
-        content: 'عذراً، واجهت مشكلة في الاتصال بنظام الذكاء الاصطناعي. يرجى المحاولة مرة أخرى.'
+        content: t('chatbot.error')
       }]);
     } finally {
       setIsTyping(false);
@@ -41,7 +43,7 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-[100]" dir="rtl">
+    <div className="fixed bottom-6 left-6 z-[100]" dir={dir}>
       <AnimatePresence>
         {isOpen ? (
           <motion.div
@@ -57,10 +59,10 @@ const Chatbot = () => {
                   <Bot size={24} />
                 </div>
                 <div>
-                  <h3 className="font-bold">مُسند بوُت</h3>
+                  <h3 className="font-bold">{t('chatbot.botName')}</h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                    <p className="text-[10px] text-primary-100">متخصص في السكري وضغط الدم</p>
+                    <p className="text-[10px] text-primary-100">{t('chatbot.botSubtitle')}</p>
                   </div>
                 </div>
               </div>
@@ -101,7 +103,7 @@ const Chatbot = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="اسأل عن السكري وضغط الدم..."
+                  placeholder={t('chatbot.placeholder')}
                   className="flex-grow bg-transparent border-none focus:ring-0 text-sm px-2 text-slate-700 outline-none"
                   disabled={isTyping}
                 />

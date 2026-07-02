@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LanguageContext';
 
 /**
  * ProtectedRoute - Role-based access control guard
@@ -10,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
  */
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, role, isLoading } = useAuth();
+  const { t } = useLang();
   const location = useLocation();
 
   // Wait for auth state to load from localStorage
@@ -18,7 +20,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-400 font-bold text-sm">جاري التحقق من صلاحياتك...</p>
+          <p className="text-slate-400 font-bold text-sm">{t('protected.verifying')}</p>
         </div>
       </div>
     );

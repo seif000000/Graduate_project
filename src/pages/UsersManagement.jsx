@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Users, UserCheck, UserMinus, Search, Filter, MoreVertical, Shield, Building, Trash2 } from 'lucide-react';
 import { getAllUsers, getAdminStats, deleteUser, adminVerifyUser, getApiError } from '../api';
+import { useLang } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
 
 const UsersManagement = () => {
+  const { t } = useLang();
   const [filter, setFilter] = useState('all');
   const [users, setUsers] = useState([]);
   const [platformStats, setPlatformStats] = useState(null);
@@ -33,13 +35,13 @@ const UsersManagement = () => {
         const looksLikeHtml = typeof payload === 'string' && payload.includes('<!DOCTYPE');
         toast.error(
           looksLikeHtml
-            ? 'الخادم غير متصل — تأكد أن الباك إند يعمل (python -m app.main)'
-            : 'فشل في استلام البيانات الصحيحة من الخادم'
+            ? t('users.serverOffline')
+            : t('users.badData')
         );
       }
     } catch (e) {
       console.error(e);
-      toast.error(getApiError(e, 'فشل تحميل المستخدمين'));
+      toast.error(getApiError(e, t('users.loadFailed')));
     } finally {
       setLoading(false);
     }
@@ -56,14 +58,14 @@ const UsersManagement = () => {
   }, []);
 
   const handleDelete = async (userId) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا الحساب نهائياً؟')) return;
+    if (!window.confirm(t('users.confirmDelete'))) return;
     setDeletingId(userId);
     try {
       await deleteUser(userId);
       setUsers(prev => prev.filter(u => u.id !== userId));
-      toast.success('تم حذف المستخدم بنجاح');
+      toast.success(t('users.deleteSuccess'));
     } catch (e) {
-      toast.error(getApiError(e, 'فشل حذف المستخدم'));
+      toast.error(getApiError(e, t('users.deleteFailed')));
     } finally {
       setDeletingId(null);
     }
@@ -73,9 +75,9 @@ const UsersManagement = () => {
     try {
       await adminVerifyUser(userId, !currentStatus);
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_verified: !currentStatus } : u));
-      toast.success(!currentStatus ? 'تم توثيق المستخدم ✅' : 'تم إلغاء التوثيق');
+      toast.success(!currentStatus ? t('users.verifiedSuccess') : t('users.unverifiedSuccess'));
     } catch (e) {
-      toast.error(getApiError(e, 'فشل تحديث حالة التوثيق'));
+      toast.error(getApiError(e, t('users.verifyStatusFailed')));
     }
   };
 
@@ -88,17 +90,17 @@ const UsersManagement = () => {
     switch(role) {
       case 'user': return (
         <span className="flex items-center gap-1.5 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">
-          <Shield size={11} /> متبرع
+          <Shield size={11} /> {t('users.badgeDonor')}
         </span>
       );
       case 'pharmacy': return (
         <span className="flex items-center gap-1.5 text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">
-          <Building size={11} /> صيدلية
+          <Building size={11} /> {t('users.badgePharmacy')}
         </span>
       );
       case 'admin': return (
         <span className="flex items-center gap-1.5 text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">
-          <Shield size={11} /> أدمن
+          <Shield size={11} /> {t('users.badgeAdmin')}
         </span>
       );
       default: return null;
@@ -106,23 +108,23 @@ const UsersManagement = () => {
   };
 
   const stats = [
-    { label: 'إجمالي المستخدمين', value: platformStats?.total_users ?? users.length, color: 'text-white' },
-    { label: 'مستخدمون عاديون', value: platformStats?.total_donors ?? users.filter(u => u.role === 'user').length, color: 'text-emerald-400' },
-    { label: 'صيدليات', value: platformStats?.total_pharmacies ?? users.filter(u => u.role === 'pharmacy').length, color: 'text-blue-400' },
-    { label: 'موثّقون', value: users.filter(u => u.is_verified).length, color: 'text-amber-400' },
+    { label: t('users.statTotalUsers'), value: platformStats?.total_users ?? users.length, color: 'text-white' },
+    { label: t('users.statRegularUsers'), value: platformStats?.total_donors ?? users.filter(u => u.role === 'user').length, color: 'text-emerald-400' },
+    { label: t('users.statPharmacies'), value: platformStats?.total_pharmacies ?? users.filter(u => u.role === 'pharmacy').length, color: 'text-blue-400' },
+    { label: t('users.statVerified'), value: users.filter(u => u.is_verified).length, color: 'text-amber-400' },
   ];
 
   return (
-    <div className="space-y-8 pb-12" dir="rtl">
+    <div className="space-y-8 pb-12">
       {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-6">
-        <div className="space-y-1 text-right">
+        <div className="space-y-1 text-start">
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
             <Users className="text-red-400" size={34} />
-            إدارة المستخدمين
+            {t('users.title')}
           </h1>
           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-            مراقبة الحسابات، توثيق الهويات، وإدارة الصلاحيات
+            {t('users.subtitle')}
           </p>
         </div>
       </header>
@@ -130,7 +132,7 @@ const UsersManagement = () => {
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map((s, i) => (
-          <div key={i} className="bg-slate-800/60 border border-white/5 rounded-2xl p-5 text-right">
+          <div key={i} className="bg-slate-800/60 border border-white/5 rounded-2xl p-5 text-start">
             <p className={`text-2xl font-black ${s.color}`}>{loading ? '—' : s.value}</p>
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">{s.label}</p>
           </div>
@@ -140,13 +142,13 @@ const UsersManagement = () => {
       {/* Filters & Search */}
       <div className="bg-slate-900 border border-white/5 rounded-2xl p-5 flex flex-wrap items-center gap-4">
         <div className="flex-grow min-w-[260px] relative">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" size={17} />
+          <Search className="absolute start-4 top-1/2 -translate-y-1/2 text-slate-500" size={17} />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="البحث باسم المستخدم أو البريد الإلكتروني..."
-            className="w-full bg-slate-800 border border-white/5 h-11 pr-12 pl-4 rounded-xl font-bold text-slate-200 outline-none focus:border-red-500/50 transition-all text-sm placeholder:text-slate-600"
+            placeholder={t('users.searchPlaceholder')}
+            className="w-full bg-slate-800 border border-white/5 h-11 ps-12 pe-4 rounded-xl font-bold text-slate-200 outline-none focus:border-red-500/50 transition-all text-sm placeholder:text-slate-600"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -156,9 +158,9 @@ const UsersManagement = () => {
             onChange={(e) => setFilter(e.target.value)}
             className="h-11 bg-slate-800 border border-white/5 px-4 rounded-xl font-bold text-slate-300 outline-none focus:border-red-500/50 text-sm"
           >
-            <option value="all">الكل</option>
-            <option value="المتبرعون">المتبرعون</option>
-            <option value="الصيدليات">الصيدليات</option>
+            <option value="all">{t('users.filterAll')}</option>
+            <option value="المتبرعون">{t('users.filterDonors')}</option>
+            <option value="الصيدليات">{t('users.filterPharmacies')}</option>
           </select>
         </div>
       </div>
@@ -166,14 +168,14 @@ const UsersManagement = () => {
       {/* Table */}
       <div className="bg-slate-900 border border-white/5 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-right">
+          <table className="w-full text-start">
             <thead>
               <tr className="border-b border-white/5">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">المستخدم</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">الدور</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] hidden md:table-cell">تاريخ الانضمام</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">الحالة</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">إجراءات</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{t('users.colUser')}</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{t('users.colRole')}</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] hidden md:table-cell">{t('users.colJoinDate')}</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{t('users.colStatus')}</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{t('users.colActions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -181,14 +183,14 @@ const UsersManagement = () => {
                 <tr>
                   <td colSpan={5} className="py-20 text-center">
                     <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-slate-500 text-sm font-bold">جاري تحميل المستخدمين...</p>
+                    <p className="text-slate-500 text-sm font-bold">{t('users.loadingUsers')}</p>
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-20 text-center">
                     <div className="text-4xl mb-3">👤</div>
-                    <p className="text-slate-400 font-bold">لا يوجد مستخدمون مطابقون للبحث</p>
+                    <p className="text-slate-400 font-bold">{t('users.noMatch')}</p>
                   </td>
                 </tr>
               ) : (
@@ -218,7 +220,7 @@ const UsersManagement = () => {
                       <div className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${user.is_verified ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]'}`} />
                         <span className={`text-[10px] font-black uppercase tracking-wider ${user.is_verified ? 'text-emerald-400' : 'text-amber-400'}`}>
-                          {user.is_verified ? 'موثّق' : 'معلّق'}
+                          {user.is_verified ? t('users.statusVerified') : t('users.statusPending')}
                         </span>
                       </div>
                     </td>
@@ -231,7 +233,7 @@ const UsersManagement = () => {
                               ? 'bg-emerald-500/10 text-emerald-400 hover:bg-red-500/10 hover:text-red-400'
                               : 'bg-white/5 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10'
                           }`}
-                          title={user.is_verified ? 'إلغاء التوثيق' : 'توثيق'}
+                          title={user.is_verified ? t('users.unverifyAction') : t('users.verifyAction')}
                         >
                           <UserCheck size={15} />
                         </button>
@@ -239,16 +241,13 @@ const UsersManagement = () => {
                           onClick={() => handleDelete(user.id)}
                           disabled={deletingId === user.id}
                           className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50"
-                          title="حذف"
+                          title={t('users.deleteAction')}
                         >
                           {deletingId === user.id ? (
                             <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                           ) : (
                             <UserMinus size={15} />
                           )}
-                        </button>
-                        <button className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-slate-200 transition-all" title="المزيد">
-                          <MoreVertical size={15} />
                         </button>
                       </div>
                     </td>
@@ -263,13 +262,8 @@ const UsersManagement = () => {
         {!loading && filteredUsers.length > 0 && (
           <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
             <p className="text-xs text-slate-500 font-bold">
-              يُعرض <span className="text-slate-300">{filteredUsers.length}</span> من أصل <span className="text-slate-300">{users.length}</span> مستخدم
+              {t('users.showingPrefix')} <span className="text-slate-300">{filteredUsers.length}</span> {t('users.showingMiddle')} <span className="text-slate-300">{users.length}</span> {t('users.showingSuffix')}
             </p>
-            <div className="flex items-center gap-1">
-              <button className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 font-black text-xs flex items-center justify-center">1</button>
-              <button className="w-8 h-8 rounded-lg bg-white/5 text-slate-400 font-bold text-xs flex items-center justify-center hover:bg-white/10 transition-all">2</button>
-              <button className="w-8 h-8 rounded-lg bg-white/5 text-slate-400 font-bold text-xs flex items-center justify-center hover:bg-white/10 transition-all">3</button>
-            </div>
           </div>
         )}
       </div>

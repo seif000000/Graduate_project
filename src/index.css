@@ -50,7 +50,7 @@
 @layer base {
   body {
     @apply bg-[#FAF9F6] text-slate-900 antialiased font-sans selection:bg-primary-100 selection:text-primary-900;
-    direction: rtl;
+    /* direction follows <html dir>, set by LanguageProvider (ar = rtl, en = ltr) */
   }
   
   h1, h2, h3, h4, h5, h6 {

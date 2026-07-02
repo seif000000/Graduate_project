@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { getCurrentLocation } from '../utils/geolocation';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { useLang } from '../context/LanguageContext';
 
 // Fix for default Leaflet marker icons not showing in React Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -31,7 +32,7 @@ const MapActions = ({ userCoords }) => {
   const map = useMap();
   
   return (
-    <div className="absolute left-6 top-6 flex flex-col gap-2 z-[400]">
+    <div className="absolute end-6 top-6 flex flex-col gap-2 z-[400]">
        <button 
          onClick={() => map.zoomIn()}
          className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow flex items-center justify-center text-slate-600 hover:text-primary-600 transition-all"
@@ -57,8 +58,9 @@ const MapActions = ({ userCoords }) => {
 };
 
 const Map = () => {
+  const { t } = useLang();
   const [markers, setMarkers] = useState([]);
-  const [userLocation, setUserLocation] = useState('جاري تحديد الموقع...');
+  const [userLocation, setUserLocation] = useState(t('map.locating'));
   const [userCoords, setUserCoords] = useState(center);
 
   // 1. Detect location on mount
@@ -76,19 +78,20 @@ const Map = () => {
               const address = data.address;
               const city = address.city || address.town || address.county || '';
               const suburb = address.suburb || address.neighbourhood || address.district || '';
-              const formatted = [suburb, city].filter(Boolean).join('، ') || data.name || 'موقعك الحالي';
+              const formatted = [suburb, city].filter(Boolean).join('، ') || data.name || t('map.currentLocationFallback');
               setUserLocation(formatted);
             } else {
-              setUserLocation('موقعك الحالي');
+              setUserLocation(t('map.currentLocationFallback'));
             }
           })
           .catch(() => {
-            setUserLocation('موقعك الحالي');
+            setUserLocation(t('map.currentLocationFallback'));
           });
       })
       .catch(() => {
-        setUserLocation('القاهرة، مصر');
+        setUserLocation(t('map.cairoEgypt'));
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 2. Fetch data for markers when userCoords is updated
@@ -123,15 +126,16 @@ const Map = () => {
         setMarkers([...meds, ...sos]);
       } catch (e) {
         console.error("Map data fetch error:", e);
-        toast.error(getApiError(e, 'فشل تحميل بيانات الخريطة'));
+        toast.error(getApiError(e, t('map.fetchError')));
       }
     };
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userCoords]);
 
   const handleNavigation = () => {
-    toast.success("جاري تحديد مسار الملاحة لأقرب نقطة تبرع...");
+    toast.success(t('map.navigating'));
     if (markers.length > 0) {
       // Find closest marker
       let closest = markers[0];
@@ -177,26 +181,26 @@ const Map = () => {
   });
 
   return (
-    <div className="h-[calc(100vh-160px)] flex flex-col gap-6" dir="rtl">
+    <div className="h-[calc(100vh-160px)] flex flex-col gap-6">
       {/* Search & Stats Overlay - Lifted to top with z-index */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 shrink-0 relative z-10">
         <div className="lg:col-span-3 glass-card p-4 flex items-center gap-4">
            <div className="flex-grow relative">
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="ابحث عن مكان أو دواء على الخريطة..." 
-                className="w-full bg-slate-50 border border-slate-200 h-12 pr-12 pl-4 rounded-xl outline-none focus:border-primary-500 transition-all font-bold text-sm"
+              <Search className="absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                type="text"
+                placeholder={t('map.searchPlaceholder')}
+                className="w-full bg-slate-50 border border-slate-200 h-12 ps-12 pe-4 rounded-xl outline-none focus:border-primary-500 transition-all font-bold text-sm"
               />
            </div>
-           <button className="btn-primary h-12 px-6 text-sm">تحديث النتائج</button>
+           <button className="btn-primary h-12 px-6 text-sm">{t('map.refreshResults')}</button>
         </div>
         <div className="glass-card p-4 flex items-center justify-center gap-3">
            <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-600">
               <MapPin size={20} />
            </div>
-           <div className="text-right">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">موقعي الحالي</p>
+           <div className="text-start">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{t('map.myCurrentLocation')}</p>
               <p className="text-sm font-black text-slate-800">{userLocation}</p>
            </div>
         </div>
@@ -221,7 +225,7 @@ const Map = () => {
           {/* User Marker */}
           <Marker position={[userCoords.lat, userCoords.lng]} icon={DefaultIcon}>
             <Popup>
-              <div className="text-right font-bold font-cairo">موقعك الحالي</div>
+              <div className="text-start font-bold font-cairo">{t('map.currentLocation')}</div>
             </Popup>
           </Marker>
 
@@ -233,8 +237,8 @@ const Map = () => {
               icon={med.type === 'طلب عاجل' ? EmergencyIcon : FreeIcon}
             >
               <Popup>
-                <div className="text-right p-1 text-slate-800 font-cairo" dir="rtl">
-                  <p className={`text-[10px] font-black uppercase tracking-widest leading-none ${med.type === 'طلب عاجل' ? 'text-red-500' : 'text-primary-500'}`}>{med.type}</p>
+                <div className="text-start p-1 text-slate-800 font-cairo">
+                  <p className={`text-[10px] font-black uppercase tracking-widest leading-none ${med.type === 'طلب عاجل' ? 'text-red-500' : 'text-primary-500'}`}>{med.type === 'طلب عاجل' ? t('map.urgentRequest') : t('search.free')}</p>
                   <p className="text-sm font-black mt-1">{med.name}</p>
                 </div>
               </Popup>
@@ -242,32 +246,32 @@ const Map = () => {
           ))}
 
           {/* Legend */}
-          <div className="absolute bottom-6 left-6 z-[400] bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-white shadow-xl max-w-xs text-right">
-             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">دلائل الخريطة</h4>
+          <div className="absolute bottom-6 end-6 z-[400] bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-white shadow-xl max-w-xs text-start">
+             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t('map.legendTitle')}</h4>
              <div className="space-y-3">
                 <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
                    <div className="w-3 h-3 rounded-full bg-primary-500"></div>
-                   <span>أدوية متوفرة مجاناً</span>
+                   <span>{t('map.legendFree')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
                    <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                   <span>حالات استغاثة فورية</span>
+                   <span>{t('map.legendSos')}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
                    <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
-                   <span>موقعك الحالي</span>
+                   <span>{t('map.legendMe')}</span>
                 </div>
              </div>
           </div>
 
           {/* Navigation Prompt */}
-          <div className="absolute bottom-6 right-6 z-[400]">
-             <button 
+          <div className="absolute bottom-6 start-6 z-[400]">
+             <button
                onClick={handleNavigation}
                className="btn-primary gap-3 rounded-full px-8 shadow-2xl h-14 bg-emerald-600 hover:bg-emerald-700"
              >
                 <Navigation size={18} />
-                <span className="font-bold">التتبع الملاحي</span>
+                <span className="font-bold">{t('map.navTrack')}</span>
              </button>
           </div>
 

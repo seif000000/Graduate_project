@@ -7,8 +7,10 @@ import {
 import { Link } from 'react-router-dom';
 import { getDashboardStats, getApiError } from '../api';
 import toast from 'react-hot-toast';
+import { useLang } from '../context/LanguageContext';
 
 const Dashboard = () => {
+  const { t } = useLang();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,46 +19,47 @@ const Dashboard = () => {
       setDashboardData(res.data);
     }).catch(err => {
       console.error(err);
-      toast.error(getApiError(err, 'فشل تحميل لوحة التحكم'));
+      toast.error(getApiError(err, t('dashboard.loadError')));
     }).finally(() => {
       setLoading(false);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = [
-    { label: 'أدويتي المتبرع بها', value: dashboardData?.stats?.total_donations || '0', icon: Package, color: 'text-primary-600', bg: 'bg-primary-50' },
-    { label: 'طلباتي المعلقة', value: dashboardData?.stats?.total_requests || '0', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'أرواح ساهمت في إنقاذها', value: dashboardData?.stats?.lives_saved || '0', icon: Heart, color: 'text-red-600', bg: 'bg-red-50' },
+    { label: t('dashboard.statDonations'), value: dashboardData?.stats?.total_donations || '0', icon: Package, color: 'text-primary-600', bg: 'bg-primary-50' },
+    { label: t('dashboard.statRequests'), value: dashboardData?.stats?.total_requests || '0', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: t('dashboard.statLives'), value: dashboardData?.stats?.lives_saved || '0', icon: Heart, color: 'text-red-600', bg: 'bg-red-50' },
   ];
 
   const recentHistory = dashboardData?.recent_history || [];
-  const userName = JSON.parse(localStorage.getItem('user'))?.full_name || 'صديق مسند';
+  const userName = JSON.parse(localStorage.getItem('user'))?.full_name || t('dashboard.defaultName');
 
   return (
-    <div className="space-y-8 pb-12" dir="rtl">
+    <div className="space-y-8 pb-12">
       {/* Simple Welcome Hero */}
       <section className="bg-primary-600 rounded-[2rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl shadow-primary-600/20">
         <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
            <div className="space-y-4">
               <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-black tracking-widest backdrop-blur-md">
-                 <ShieldCheck size={14} /> عضو موثق
+                 <ShieldCheck size={14} /> {t('dashboard.verifiedMember')}
               </span>
               <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                 أهلاً بك يا {userName.split(' ')[0]} 👋
+                 {t('dashboard.welcome').replace('{name}', userName.split(' ')[0])}
               </h1>
               <p className="text-primary-100 font-medium text-lg max-w-sm">
-                 في مسند، كل دواء تشاركه يمثل جرعة أمل وحياة جديدة لشخص آخر.. شكراً لعطائك.
+                 {t('dashboard.welcomeDesc')}
               </p>
            </div>
            
            <div className="flex flex-col sm:flex-row gap-4 justify-end">
               <Link to="/donate" className="h-14 px-8 bg-white text-primary-600 rounded-2xl font-black flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-xl">
                  <PlusCircle size={20} />
-                 تبرع الآن
+                 {t('dashboard.donateNow')}
               </Link>
               <Link to="/emergency" className="h-14 px-8 bg-primary-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-primary-800 transition-colors border border-primary-500">
                  <AlertCircle size={20} />
-                 طلب استغاثة
+                 {t('dashboard.sosRequest')}
               </Link>
            </div>
         </div>
@@ -72,32 +75,32 @@ const Dashboard = () => {
             <div className="w-12 h-12 rounded-full bg-slate-50 group-hover:bg-primary-50 text-slate-400 group-hover:text-primary-500 flex items-center justify-center transition-colors">
                <Search size={20} />
             </div>
-            <span className="text-sm font-black text-slate-700">البحث عن دواء</span>
+            <span className="text-sm font-black text-slate-700">{t('dashboard.searchMed')}</span>
          </Link>
          <Link to="/requests" className="glass-card p-6 flex flex-col items-center justify-center text-center gap-3 hover:-translate-y-1 hover:shadow-lg transition-all group cursor-pointer">
             <div className="w-12 h-12 rounded-full bg-slate-50 group-hover:bg-amber-50 text-slate-400 group-hover:text-amber-500 flex items-center justify-center transition-colors">
                <Clock size={20} />
             </div>
-            <span className="text-sm font-black text-slate-700">متابعة طلباتي</span>
+            <span className="text-sm font-black text-slate-700">{t('dashboard.followRequests')}</span>
          </Link>
          <Link to="/my-donations" className="glass-card p-6 flex flex-col items-center justify-center text-center gap-3 hover:-translate-y-1 hover:shadow-lg transition-all group cursor-pointer">
             <div className="w-12 h-12 rounded-full bg-slate-50 group-hover:bg-emerald-50 text-slate-400 group-hover:text-emerald-500 flex items-center justify-center transition-colors">
                <Package size={20} />
             </div>
-            <span className="text-sm font-black text-slate-700">سجل التبرعات</span>
+            <span className="text-sm font-black text-slate-700">{t('dashboard.donationsLog')}</span>
          </Link>
          <Link to="/health-ai" className="glass-card p-6 flex flex-col items-center justify-center text-center gap-3 hover:-translate-y-1 hover:shadow-lg transition-all group cursor-pointer border border-primary-100 bg-primary-50/30">
             <div className="w-12 h-12 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
                🤖
             </div>
-            <span className="text-sm font-black text-primary-800">مساعدك الذكي</span>
+            <span className="text-sm font-black text-primary-800">{t('dashboard.aiAssistant')}</span>
          </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          {/* Simple Stats Highlights */}
          <div className="lg:col-span-1 space-y-4">
-            <h3 className="text-lg font-black text-slate-800 px-2 border-r-4 border-primary-500 pr-3">أثرك في مسند</h3>
+            <h3 className="text-lg font-black text-slate-800 px-2 border-s-4 border-primary-500 ps-3">{t('dashboard.yourImpact')}</h3>
             <div className="space-y-4">
                {stats.map((stat, i) => (
                  <div key={i} className="glass-card p-5 flex items-center gap-4">
@@ -115,14 +118,14 @@ const Dashboard = () => {
 
          {/* Recent Activity List */}
          <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center justify-between px-2 text-right">
-               <h3 className="text-lg font-black text-slate-800 border-r-4 border-primary-500 pr-3">أحدث النشاطات</h3>
-               <Link to="/requests" className="text-primary-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 hover:underline">عرض التفاصيل <ArrowLeft size={12} /></Link>
+            <div className="flex items-center justify-between px-2 text-start">
+               <h3 className="text-lg font-black text-slate-800 border-s-4 border-primary-500 ps-3">{t('dashboard.recentActivities')}</h3>
+               <Link to="/requests" className="text-primary-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 hover:underline">{t('dashboard.viewDetails')} <ArrowLeft size={12} /></Link>
             </div>
             
             <div className="glass-card border border-slate-100 overflow-hidden">
                {loading ? (
-                 <div className="text-center p-8 text-slate-400 font-bold">جاري التحميل...</div>
+                 <div className="text-center p-8 text-slate-400 font-bold">{t('dashboard.loading')}</div>
                ) : recentHistory.length > 0 ? (
                  <div className="divide-y divide-slate-50">
                    {recentHistory.map((item, i) => (
@@ -146,8 +149,8 @@ const Dashboard = () => {
                  <div className="p-12 text-center flex flex-col items-center justify-center space-y-4">
                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-2xl grayscale opacity-50">📦</div>
                     <div>
-                       <p className="font-black text-slate-700">دفترك فارغ حالياً</p>
-                       <p className="text-sm text-slate-400 font-medium mt-1">سجل نشاطك سيبدأ بالظهور هنا فور تبرعك الأول.</p>
+                       <p className="font-black text-slate-700">{t('dashboard.emptyTitle')}</p>
+                       <p className="text-sm text-slate-400 font-medium mt-1">{t('dashboard.emptyDesc')}</p>
                     </div>
                  </div>
                )}

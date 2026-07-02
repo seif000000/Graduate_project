@@ -3,6 +3,7 @@ import { Users, Plus, Pencil, Trash2, Save, X, Loader2, ImageIcon } from 'lucide
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { getTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from '../api';
+import { useLang } from '../context/LanguageContext';
 
 const EMPTY_FORM = {
   name: '',
@@ -16,6 +17,7 @@ const EMPTY_FORM = {
 };
 
 function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
+  const { t } = useLang();
   const [form, setForm] = useState(initial);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -26,31 +28,31 @@ function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
     >
       {/* Name */}
       <div className="md:col-span-2">
-        <label className="block text-xs font-bold text-slate-500 mb-1">الاسم *</label>
+        <label className="block text-xs font-bold text-slate-500 mb-1">{t('team.nameLabel')}</label>
         <input
           required
           value={form.name}
           onChange={(e) => set('name', e.target.value)}
-          placeholder="مثال: سيف محمد"
+          placeholder={t('team.namePlaceholder')}
           className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
         />
       </div>
 
       {/* Role */}
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1">الوظيفة / التخصص *</label>
+        <label className="block text-xs font-bold text-slate-500 mb-1">{t('team.roleLabel')}</label>
         <input
           required
           value={form.role}
           onChange={(e) => set('role', e.target.value)}
-          placeholder="مثال: Full-Stack Developer"
+          placeholder={t('team.rolePlaceholder')}
           className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
         />
       </div>
 
       {/* Order */}
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1">الترتيب (رقم)</label>
+        <label className="block text-xs font-bold text-slate-500 mb-1">{t('team.orderLabel')}</label>
         <input
           type="number"
           value={form.order}
@@ -61,12 +63,12 @@ function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
 
       {/* Bio */}
       <div className="md:col-span-2">
-        <label className="block text-xs font-bold text-slate-500 mb-1">وصف مختصر</label>
+        <label className="block text-xs font-bold text-slate-500 mb-1">{t('team.bioLabel')}</label>
         <textarea
           rows={2}
           value={form.bio}
           onChange={(e) => set('bio', e.target.value)}
-          placeholder="دور العضو في المشروع..."
+          placeholder={t('team.bioPlaceholder')}
           className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 resize-none"
         />
       </div>
@@ -74,7 +76,7 @@ function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
       {/* Photo URL */}
       <div className="md:col-span-2">
         <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-          <ImageIcon size={12} /> رابط الصورة الشخصية (URL)
+          <ImageIcon size={12} /> {t('team.photoLabel')}
         </label>
         <input
           value={form.photo_url}
@@ -87,7 +89,7 @@ function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
 
       {/* Social */}
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1">GitHub URL</label>
+        <label className="block text-xs font-bold text-slate-500 mb-1">{t('team.githubLabel')}</label>
         <input
           value={form.github}
           onChange={(e) => set('github', e.target.value)}
@@ -97,7 +99,7 @@ function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
         />
       </div>
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1">LinkedIn URL</label>
+        <label className="block text-xs font-bold text-slate-500 mb-1">{t('team.linkedinLabel')}</label>
         <input
           value={form.linkedin}
           onChange={(e) => set('linkedin', e.target.value)}
@@ -107,7 +109,7 @@ function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
         />
       </div>
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1">البريد الإلكتروني</label>
+        <label className="block text-xs font-bold text-slate-500 mb-1">{t('team.emailLabel')}</label>
         <input
           type="email"
           value={form.email}
@@ -127,18 +129,18 @@ function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
             className="w-12 h-12 rounded-full object-cover ring-2 ring-primary-200"
             onError={(e) => { e.target.src = ''; e.target.style.display = 'none'; }}
           />
-          <span className="text-xs text-slate-500">معاينة الصورة</span>
+          <span className="text-xs text-slate-500">{t('team.imagePreview')}</span>
         </div>
       )}
 
       {/* Actions */}
       <div className="md:col-span-2 flex gap-3 justify-end pt-2">
         <button type="button" onClick={onCancel} className="btn-secondary px-5 py-2 text-sm">
-          <X size={16} /> إلغاء
+          <X size={16} /> {t('team.cancel')}
         </button>
         <button type="submit" disabled={saving} className="btn-primary px-5 py-2 text-sm">
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-          حفظ
+          {t('team.save')}
         </button>
       </div>
     </form>
@@ -146,6 +148,7 @@ function MemberForm({ initial = EMPTY_FORM, onSave, onCancel, saving }) {
 }
 
 export default function TeamManagement() {
+  const { t } = useLang();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -156,7 +159,7 @@ export default function TeamManagement() {
     setLoading(true);
     getTeamMembers()
       .then(({ data }) => setMembers(data))
-      .catch(() => toast.error('فشل تحميل الفريق'))
+      .catch(() => toast.error(t('team.loadFailed')))
       .finally(() => setLoading(false));
   };
 
@@ -166,11 +169,11 @@ export default function TeamManagement() {
     setSaving(true);
     try {
       await createTeamMember(form);
-      toast.success('تمت إضافة العضو بنجاح');
+      toast.success(t('team.addSuccess'));
       setShowAdd(false);
       refresh();
     } catch {
-      toast.error('فشل إضافة العضو');
+      toast.error(t('team.addFailed'));
     } finally {
       setSaving(false);
     }
@@ -180,45 +183,45 @@ export default function TeamManagement() {
     setSaving(true);
     try {
       await updateTeamMember(id, form);
-      toast.success('تم التعديل بنجاح');
+      toast.success(t('team.updateSuccess'));
       setEditId(null);
       refresh();
     } catch {
-      toast.error('فشل التعديل');
+      toast.error(t('team.updateFailed'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`هل أنت متأكد من حذف "${name}"؟`)) return;
+    if (!window.confirm(t('team.confirmDelete').replace('{name}', name))) return;
     try {
       await deleteTeamMember(id);
-      toast.success('تم الحذف');
+      toast.success(t('team.deleteSuccess'));
       refresh();
     } catch {
-      toast.error('فشل الحذف');
+      toast.error(t('team.deleteFailed'));
     }
   };
 
   return (
-    <div className="space-y-6 pb-12" dir="rtl">
+    <div className="space-y-6 pb-12">
       {/* Header */}
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
             <Users className="text-emerald-400" size={32} />
-            إدارة فريق العمل
+            {t('team.title')}
           </h1>
           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-            أعضاء الفريق المعروضين في صفحة &quot;من نحن&quot;
+            {t('team.subtitle')}
           </p>
         </div>
         <button
           onClick={() => { setShowAdd(true); setEditId(null); }}
           className="btn-primary"
         >
-          <Plus size={18} /> إضافة عضو
+          <Plus size={18} /> {t('team.addMember')}
         </button>
       </header>
 
@@ -232,7 +235,7 @@ export default function TeamManagement() {
             className="bg-white rounded-2xl border border-primary-100 shadow-lg p-6"
           >
             <h2 className="font-black text-slate-700 mb-4 flex items-center gap-2">
-              <Plus size={18} className="text-primary-500" /> إضافة عضو جديد
+              <Plus size={18} className="text-primary-500" /> {t('team.addMemberTitle')}
             </h2>
             <MemberForm
               onSave={handleCreate}
@@ -251,8 +254,8 @@ export default function TeamManagement() {
       ) : members.length === 0 ? (
         <div className="text-center py-20 text-slate-400">
           <Users size={56} className="mx-auto mb-4 opacity-20" />
-          <p className="font-bold">لا يوجد أعضاء بعد</p>
-          <p className="text-sm mt-1">اضغط &quot;إضافة عضو&quot; لإضافة أول عضو في الفريق</p>
+          <p className="font-bold">{t('team.emptyTitle')}</p>
+          <p className="text-sm mt-1">{t('team.emptySubtitle')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -283,7 +286,7 @@ export default function TeamManagement() {
 
                 {/* Order badge */}
                 <span className="hidden sm:block text-xs bg-slate-100 text-slate-500 font-bold px-2 py-1 rounded-lg">
-                  ترتيب: {m.order}
+                  {t('team.orderBadge')} {m.order}
                 </span>
 
                 {/* Actions */}

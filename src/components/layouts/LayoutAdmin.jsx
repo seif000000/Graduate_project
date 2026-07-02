@@ -2,24 +2,26 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useLang } from '../../context/LanguageContext';
+import { LanguageToggle } from '../LanguageToggle';
 import {
-  LayoutDashboard, Users, TrendingUp, AlertCircle,
+  LayoutDashboard, Users, TrendingUp,
   Settings, LogOut, ShieldCheck, Bell, Activity, Menu, X
 } from 'lucide-react';
 
 const adminNav = [
-  { section: 'الرئيسي', items: [
-    { label: 'لوحة التحكم', icon: LayoutDashboard, path: '/admin' },
-    { label: 'إدارة المستخدمين', icon: Users, path: '/admin/users' },
-    { label: 'توثيق الصيدليات', icon: ShieldCheck, path: '/admin/pharmacies' },
+  { sectionKey: 'section.main', items: [
+    { labelKey: 'nav.controlPanel', icon: LayoutDashboard, path: '/admin' },
+    { labelKey: 'nav.users', icon: Users, path: '/admin/users' },
+    { labelKey: 'nav.pharmacyVerification', icon: ShieldCheck, path: '/admin/pharmacies' },
   ]},
-  { section: 'التحليلات', items: [
-    { label: 'إحصائيات الأدوية', icon: TrendingUp, path: '/admin/analytics' },
-    { label: 'سجلات النظام', icon: Activity, path: '/admin/reports' },
+  { sectionKey: 'section.analytics', items: [
+    { labelKey: 'nav.medicineAnalytics', icon: TrendingUp, path: '/admin/analytics' },
+    { labelKey: 'nav.systemLogs', icon: Activity, path: '/admin/reports' },
   ]},
-  { section: 'الإعدادات والتخصيص', items: [
-    { label: 'إدارة فريق العمل', icon: Users, path: '/admin/team' },
-    { label: 'الإعدادات', icon: Settings, path: '/admin/settings' },
+  { sectionKey: 'section.settingsCustom', items: [
+    { labelKey: 'nav.teamManagement', icon: Users, path: '/admin/team' },
+    { labelKey: 'nav.settings', icon: Settings, path: '/admin/settings' },
   ]},
 ];
 
@@ -27,7 +29,9 @@ const LayoutAdmin = ({ children, title }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t, dir } = useLang();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const slideFrom = dir === 'rtl' ? '100%' : '-100%';
 
   const handleLogout = () => {
     logout();
@@ -38,13 +42,13 @@ const LayoutAdmin = ({ children, title }) => {
     <>
       {/* Brand */}
       <div className="p-5 border-b border-white/10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,var(--color-red-500)_0%,transparent_70%)] opacity-20" />
+        <div className="absolute top-0 end-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,var(--color-red-500)_0%,transparent_70%)] opacity-20" />
         <div className="flex items-center gap-3 relative z-10">
           <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.5)] shrink-0">
             <ShieldCheck size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-black text-white tracking-tight">مُسند — قيادة</h1>
+            <h1 className="text-lg font-black text-white tracking-tight">{t('shell.adminBrand')}</h1>
             <p className="text-[9px] text-red-400 font-bold uppercase tracking-widest">Command Center</p>
           </div>
         </div>
@@ -53,8 +57,8 @@ const LayoutAdmin = ({ children, title }) => {
       {/* Navigation */}
       <div className="flex-grow overflow-y-auto py-4 px-3">
         {adminNav.map(group => (
-          <div key={group.section} className="mb-5">
-            <p className="px-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{group.section}</p>
+          <div key={group.sectionKey} className="mb-5">
+            <p className="px-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{t(group.sectionKey)}</p>
             {group.items.map(item => {
               const isActive = location.pathname === item.path;
               return (
@@ -69,9 +73,9 @@ const LayoutAdmin = ({ children, title }) => {
                     }`}
                 >
                   <item.icon size={17} className={isActive ? 'text-red-400' : ''} />
-                  <span className="text-sm font-bold">{item.label}</span>
+                  <span className="text-sm font-bold">{t(item.labelKey)}</span>
                   {isActive && (
-                    <motion.div layoutId="adminActive" className="absolute right-0 w-1 h-6 bg-red-500 rounded-l-full shadow-[0_0_10px_rgba(239,68,68,1)]" />
+                    <motion.div layoutId="adminActive" className="absolute end-0 w-1 h-6 bg-red-500 rounded-s-full shadow-[0_0_10px_rgba(239,68,68,1)]" />
                   )}
                 </Link>
               );
@@ -87,10 +91,10 @@ const LayoutAdmin = ({ children, title }) => {
             {user?.full_name?.slice(0, 2) || 'أد'}
           </div>
           <div className="flex-grow min-w-0">
-            <p className="text-sm font-bold text-white truncate">{user?.full_name || 'المدير'}</p>
+            <p className="text-sm font-bold text-white truncate">{user?.full_name || t('role.adminName')}</p>
             <p className="text-[10px] text-red-400 font-bold tracking-wider">SYSTEM ADMIN</p>
           </div>
-          <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all">
+          <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all" title={t('shell.logout')}>
             <LogOut size={16} />
           </button>
         </div>
@@ -99,9 +103,9 @@ const LayoutAdmin = ({ children, title }) => {
   );
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-300" dir="rtl">
+    <div className="flex min-h-screen bg-slate-950 text-slate-300">
       {/* ── Desktop Sidebar ─────────────────────────────── */}
-      <aside className="w-64 bg-slate-900 h-screen fixed right-0 top-0 flex-col z-50 shadow-[0_0_40px_rgba(0,0,0,0.5)] border-l border-white/5 hidden md:flex">
+      <aside className="w-64 bg-slate-900 h-screen fixed start-0 top-0 flex-col z-50 shadow-[0_0_40px_rgba(0,0,0,0.5)] border-e border-white/5 hidden md:flex">
         <SidebarContent />
       </aside>
 
@@ -117,15 +121,15 @@ const LayoutAdmin = ({ children, title }) => {
               onClick={() => setSidebarOpen(false)}
             />
             <motion.aside
-              initial={{ x: '100%' }}
+              initial={{ x: slideFrom }}
               animate={{ x: 0 }}
-              exit={{ x: '100%' }}
+              exit={{ x: slideFrom }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="w-72 bg-slate-900 h-screen fixed right-0 top-0 flex flex-col z-50 border-l border-white/5 md:hidden"
+              className="w-72 bg-slate-900 h-screen fixed start-0 top-0 flex flex-col z-50 border-e border-white/5 md:hidden"
             >
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="absolute left-3 top-3 p-2 rounded-xl text-slate-400 hover:bg-white/10 transition-all"
+                className="absolute end-3 top-3 p-2 rounded-xl text-slate-400 hover:bg-white/10 transition-all"
               >
                 <X size={20} />
               </button>
@@ -136,7 +140,7 @@ const LayoutAdmin = ({ children, title }) => {
       </AnimatePresence>
 
       {/* ── Main Content ────────────────────────────────── */}
-      <div className="flex-grow md:mr-64 flex flex-col min-h-screen w-full">
+      <div className="flex-grow md:ms-64 flex flex-col min-h-screen w-full">
         {/* Topbar */}
         <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-white/5 px-4 md:px-8 py-3 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
@@ -146,12 +150,13 @@ const LayoutAdmin = ({ children, title }) => {
             >
               <Menu size={20} />
             </button>
-            <h2 className="text-base md:text-lg font-black text-white">{title || 'لوحة الإدارة'}</h2>
+            <h2 className="text-base md:text-lg font-black text-white">{title ? t(title) : t('shell.adminPanel')}</h2>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageToggle className="hidden sm:inline-flex !bg-slate-800 !border-white/10 !text-slate-300" />
             <button className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center hover:bg-slate-700 text-slate-300 transition-all relative border border-white/5">
               <Bell size={17} />
-              <span className="absolute -top-1 -left-1 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white font-black flex items-center justify-center">3</span>
+              <span className="absolute -top-1 -start-1 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white font-black flex items-center justify-center">3</span>
             </button>
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-500/10 rounded-xl border border-red-500/20">
               <ShieldCheck size={14} className="text-red-400" />
@@ -167,7 +172,7 @@ const LayoutAdmin = ({ children, title }) => {
         </main>
 
         <footer className="px-4 md:px-8 py-4 text-center text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] border-t border-white/5">
-          مُسند — نظام الإدارة المركزية &copy; {new Date().getFullYear()}
+          {t('footer.adminTagline')} &copy; {new Date().getFullYear()}
         </footer>
       </div>
     </div>

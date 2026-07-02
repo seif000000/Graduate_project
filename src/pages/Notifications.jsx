@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, Heart, AlertTriangle, ShieldCheck, MessageSquare, Trash2, CheckCircle, Info } from 'lucide-react';
 import { getMyNotifications, markNotificationsRead, getApiError } from '../api';
+import { formatDateTime } from '../utils/formatDate';
 import toast from 'react-hot-toast';
+import { useLang } from '../context/LanguageContext';
 
 const Notifications = () => {
+  const { t } = useLang();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,7 +17,7 @@ const Notifications = () => {
       setNotifications(res.data);
     } catch (e) {
       console.error(e);
-      toast.error(getApiError(e, 'فشل تحميل الإشعارات'));
+      toast.error(getApiError(e, t('notifications.loadFail')));
     } finally {
       setLoading(false);
     }
@@ -30,7 +33,7 @@ const Notifications = () => {
       setNotifications(prev => prev.map(n => ({ ...n, is_new: false })));
     } catch (e) {
       console.error(e);
-      toast.error(getApiError(e, 'فشل تحديث الإشعارات'));
+      toast.error(getApiError(e, t('notifications.updateFail')));
     }
   };
 
@@ -55,18 +58,18 @@ const Notifications = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12" dir="rtl">
+    <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <header className="flex flex-wrap items-center justify-between gap-6 px-4">
-        <div className="space-y-2 text-right">
-          <h1 className="text-4xl font-black text-slate-800">🔔 الإشعارات</h1>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">تابع آخر التحديثات والنشاطات</p>
+        <div className="space-y-2 text-start">
+          <h1 className="text-4xl font-black text-slate-800">{t('notifications.title')}</h1>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">{t('notifications.subtitle')}</p>
         </div>
         <div className="flex gap-3">
-          <button 
+          <button
             onClick={handleMarkAllRead}
             className="btn-secondary h-12 px-6 text-xs uppercase tracking-widest font-black"
           >
-            تعيين الكل كمقروء
+            {t('notifications.markAllRead')}
           </button>
           <button className="h-12 w-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all">
             <Trash2 size={20} />
@@ -90,7 +93,7 @@ const Notifications = () => {
                })()}
             </div>
             
-            <div className="flex-grow space-y-1 text-right">
+            <div className="flex-grow space-y-1 text-start">
               <div className="flex items-center gap-3">
                 <h3 className="font-black text-slate-800 text-lg leading-tight">{notif.title}</h3>
                 {notif.is_new && (
@@ -98,10 +101,10 @@ const Notifications = () => {
                 )}
               </div>
               <p className="text-slate-500 font-medium leading-relaxed">{notif.desc}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(notif.created_at).toLocaleString('ar-EG')}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{formatDateTime(notif.created_at)}</p>
             </div>
 
-            <div className="flex items-center pr-4">
+            <div className="flex items-center pe-4">
                <div className="w-8 h-8 rounded-full bg-slate-50 text-slate-300 flex items-center justify-center group-hover:text-primary-500 group-hover:bg-primary-50 transition-all">
                  <ShieldCheck size={18} />
                </div>
@@ -111,7 +114,7 @@ const Notifications = () => {
       </div>
 
       <div className="p-12 text-center text-slate-300">
-        <p className="text-sm font-black uppercase tracking-[0.3em]">نهاية الإشعارات</p>
+        <p className="text-sm font-black uppercase tracking-[0.3em]">{t('notifications.end')}</p>
       </div>
     </div>
   );

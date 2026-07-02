@@ -83,152 +83,152 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <LayoutAdmin title="لوحة التحكم"><Admin /></LayoutAdmin>
+              <LayoutAdmin title="routes.adminDashboard"><Admin /></LayoutAdmin>
             </ProtectedRoute>
           } />
           <Route path="/admin/users" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <LayoutAdmin title="إدارة المستخدمين"><UsersManagement /></LayoutAdmin>
+              <LayoutAdmin title="routes.usersManagement"><UsersManagement /></LayoutAdmin>
             </ProtectedRoute>
           } />
           <Route path="/admin/analytics" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <LayoutAdmin title="إحصائيات الأدوية"><MedicinesAnalytics /></LayoutAdmin>
+              <LayoutAdmin title="routes.medicinesAnalytics"><MedicinesAnalytics /></LayoutAdmin>
             </ProtectedRoute>
           } />
           <Route path="/admin/reports" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <LayoutAdmin title="سجلات النظام والشكاوى"><Reports /></LayoutAdmin>
+              <LayoutAdmin title="routes.systemLogs"><Reports /></LayoutAdmin>
             </ProtectedRoute>
           } />
           <Route path="/admin/pharmacies" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <LayoutAdmin title="توثيق الصيدليات"><Admin /></LayoutAdmin>
+              <LayoutAdmin title="routes.pharmacyVerification"><Admin /></LayoutAdmin>
             </ProtectedRoute>
           } />
           <Route path="/admin/team" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <LayoutAdmin title="إدارة فريق العمل"><TeamManagement /></LayoutAdmin>
+              <LayoutAdmin title="routes.teamManagement"><TeamManagement /></LayoutAdmin>
             </ProtectedRoute>
           } />
           <Route path="/admin/settings" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <LayoutAdmin title="الإعدادات"><Settings /></LayoutAdmin>
+              <LayoutAdmin title="routes.settings"><Settings /></LayoutAdmin>
             </ProtectedRoute>
           } />
 
           {/* Pharmacy Routes */}
           <Route path="/pharmacy/inventory" element={
             <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
-              <LayoutPharmacy title="مخزون الصيدلية"><PharmacyInventory /></LayoutPharmacy>
+              <LayoutPharmacy title="routes.pharmacyInventory"><PharmacyInventory /></LayoutPharmacy>
             </ProtectedRoute>
           } />
           <Route path="/pharmacy/near-expiry" element={
             <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
-              <LayoutPharmacy title="الأدوية قرب الانتهاء"><NearExpiry /></LayoutPharmacy>
+              <LayoutPharmacy title="routes.nearExpiry"><NearExpiry /></LayoutPharmacy>
             </ProtectedRoute>
           } />
           <Route path="/pharmacy/stats" element={
             <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
-              <LayoutPharmacy title="إحصائيات الصيدلية"><PharmacyStats /></LayoutPharmacy>
+              <LayoutPharmacy title="routes.pharmacyStats"><PharmacyStats /></LayoutPharmacy>
             </ProtectedRoute>
           } />
           <Route path="/pharmacy/pricing" element={
             <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
-              <LayoutPharmacy title="التحكم في الأسعار"><PricingControl /></LayoutPharmacy>
+              <LayoutPharmacy title="routes.pricingControl"><PricingControl /></LayoutPharmacy>
             </ProtectedRoute>
           } />
 
           {/* User app — requires login */}
           <Route path="/search" element={
             <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
-              <LayoutUser title="البحث عن دواء"><Search /></LayoutUser>
+              <LayoutUser title="routes.search"><Search /></LayoutUser>
             </ProtectedRoute>
           } />
           <Route path="/map" element={
             <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
-              <LayoutUser title="الخريطة التفاعلية"><Map /></LayoutUser>
+              <LayoutUser title="routes.map"><Map /></LayoutUser>
             </ProtectedRoute>
           } />
           <Route path="/help-center" element={
             <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
-              <LayoutUser title="مركز المساعدة"><HelpCenter /></LayoutUser>
+              <LayoutUser title="routes.helpCenter"><HelpCenter /></LayoutUser>
             </ProtectedRoute>
           } />
           <Route path="/donate" element={
             <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
-              <LayoutUser title="تبرع بدواء"><Donate /></LayoutUser>
+              <LayoutUser title="routes.donate"><Donate /></LayoutUser>
             </ProtectedRoute>
           } />
           <Route path="/dashboard" element={
             <ProtectedRoute allowedRoles={['user', 'admin']}>
-              <LayoutUser title="لوحة المتبرع"><Dashboard /></LayoutUser>
+              <LayoutUser title="routes.donorDashboard"><Dashboard /></LayoutUser>
             </ProtectedRoute>
           } />
           <Route path="/emergency" element={
             <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
-              <LayoutUser title="طلبات الاستغاثة"><Emergency /></LayoutUser>
+              <LayoutUser title="routes.emergency"><Emergency /></LayoutUser>
             </ProtectedRoute>
           } />
           <Route path="/health-ai" element={
             <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
-              <LayoutUser title="مساعد المزمن"><HealthAI /></LayoutUser>
+              <LayoutUser title="routes.healthAI"><HealthAI /></LayoutUser>
             </ProtectedRoute>
           } />
           <Route path="/verification" element={
              <ProtectedRoute>
-                <LayoutUser title="دواء مجاني"><Verification /></LayoutUser>
+                <LayoutUser title="routes.freeMedicine"><Verification /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/account-verification" element={
              <ProtectedRoute>
-                <LayoutUser title="تحقق الهوية"><AccountVerification /></LayoutUser>
+                <LayoutUser title="routes.verification"><AccountVerification /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/requests" element={
              <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <LayoutUser title="طلباتي"><MyRequests /></LayoutUser>
+                <LayoutUser title="routes.myRequests"><MyRequests /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/my-donations" element={
              <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <LayoutUser title="تبرعاتي"><MyDonations /></LayoutUser>
+                <LayoutUser title="routes.myDonations"><MyDonations /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/vouchers" element={
              <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <LayoutUser title="كوبونات الخصم"><MyVouchers /></LayoutUser>
+                <LayoutUser title="routes.myVouchers"><MyVouchers /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/medical-history" element={
              <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <LayoutUser title="السجل الطبي"><MedicalHistory /></LayoutUser>
+                <LayoutUser title="routes.medicalHistory"><MedicalHistory /></LayoutUser>
              </ProtectedRoute>
           } />
           
           <Route path="/profile" element={
              <ProtectedRoute>
-                <LayoutUser title="الملف الشخصي"><Profile /></LayoutUser>
+                <LayoutUser title="routes.profile"><Profile /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/settings" element={
              <ProtectedRoute>
-                <LayoutUser title="الإعدادات"><Settings /></LayoutUser>
+                <LayoutUser title="routes.settings"><Settings /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/notifications" element={
              <ProtectedRoute>
-                <LayoutUser title="الإشعارات"><Notifications /></LayoutUser>
+                <LayoutUser title="routes.notifications"><Notifications /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/inbox" element={
              <ProtectedRoute>
-                <LayoutUser title="الرسائل"><Inbox /></LayoutUser>
+                <LayoutUser title="routes.inbox"><Inbox /></LayoutUser>
              </ProtectedRoute>
           } />
           <Route path="/community" element={
              <ProtectedRoute>
-                <LayoutUser title="المجتمع"><Community /></LayoutUser>
+                <LayoutUser title="routes.community"><Community /></LayoutUser>
              </ProtectedRoute>
           } />
 

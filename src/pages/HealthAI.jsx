@@ -2,22 +2,23 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, ShieldCheck, Info, Sparkles, Mic, Paperclip, MessageSquare, Trash2 } from 'lucide-react';
 import { askGemini } from '../services/gemini';
-
-const QUICK_QUESTIONS = [
-  'ما هي أعراض ارتفاع السكر في الدم؟',
-  'كيف أتحكم في ضغط الدم طبيعياً؟',
-  'ما الفرق بين السكري النوع الأول والثاني؟',
-  'هل يمكنني تناول العسل مع السكري؟',
-];
+import { useLang } from '../context/LanguageContext';
 
 const HealthAI = () => {
+  const { t } = useLang();
+  const QUICK_QUESTIONS = [
+    t('healthai.q1'),
+    t('healthai.q2'),
+    t('healthai.q3'),
+    t('healthai.q4'),
+  ];
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
       role: 'ai',
-      text: 'أهلاً بك! 👋 أنا مساعدك الطبي الذكي في منصة مُسند، متخصص في السكري وضغط الدم المرتفع.\n\nيمكنني مساعدتك في:\n• الاستفسارات عن الأدوية والجرعات\n• النصائح الغذائية لمرضى السكري والضغط\n• فهم نتائج التحاليل\n• الأدوية البديلة المتاحة\n\nكيف يمكنني مساعدتك اليوم؟',
+      text: t('healthai.welcome'),
       time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -56,7 +57,7 @@ const HealthAI = () => {
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'ai',
-        text: 'عذراً، واجهت مشكلة مؤقتة في الاتصال. يرجى المحاولة مرة أخرى. 🔄',
+        text: t('healthai.errorReply'),
         time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
       }]);
     } finally {
@@ -70,13 +71,13 @@ const HealthAI = () => {
     setMessages([{
       id: Date.now(),
       role: 'ai',
-      text: 'تم مسح المحادثة. كيف يمكنني مساعدتك من جديد؟ 😊',
+      text: t('healthai.cleared'),
       time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
     }]);
   };
 
   return (
-    <div className="h-[calc(100vh-160px)] flex gap-8" dir="rtl">
+    <div className="h-[calc(100vh-160px)] flex gap-8">
       {/* Main Chat Area */}
       <div className="flex-grow flex flex-col gap-6">
         <div className="flex-grow glass-card overflow-hidden flex flex-col p-0">
@@ -86,12 +87,12 @@ const HealthAI = () => {
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white shadow-lg shadow-primary-200">
                 <Bot size={24} />
               </div>
-              <div className="text-right">
-                <h2 className="text-lg font-black text-slate-800 leading-none">مساعد مسند الذكي</h2>
+              <div className="text-start">
+                <h2 className="text-lg font-black text-slate-800 leading-none">{t('healthai.assistantName')}</h2>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    نشط الآن • متخصص السكري وضغط الدم
+                    {t('healthai.activeNow')}
                   </span>
                 </div>
               </div>
@@ -100,7 +101,7 @@ const HealthAI = () => {
               <button
                 onClick={clearChat}
                 className="p-2.5 text-slate-300 hover:text-red-400 hover:bg-red-50 rounded-xl transition-all"
-                title="مسح المحادثة"
+                title={t('healthai.clearChat')}
               >
                 <Trash2 size={18} />
               </button>
@@ -182,14 +183,14 @@ const HealthAI = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                placeholder="اسأل عن السكري وضغط الدم..."
-                className="w-full bg-slate-50 border border-slate-200 h-14 pr-5 pl-16 rounded-2xl outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10 transition-all font-medium text-slate-700 text-sm"
+                placeholder={t('healthai.inputPlaceholder')}
+                className="w-full bg-slate-50 border border-slate-200 h-14 ps-5 pe-16 rounded-2xl outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10 transition-all font-medium text-slate-700 text-sm"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || !input.trim()}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white rounded-xl flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
+                className="absolute start-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white rounded-xl flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
               >
                 <Send size={18} className="rotate-180" />
               </button>
@@ -203,7 +204,7 @@ const HealthAI = () => {
         {/* Quick Questions */}
         <div className="glass-card p-6 space-y-4">
           <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-            <MessageSquare size={15} className="text-primary-500" /> أسئلة شائعة
+            <MessageSquare size={15} className="text-primary-500" /> {t('healthai.faqTitle')}
           </h3>
           <div className="space-y-2">
             {QUICK_QUESTIONS.map((q, i) => (
@@ -211,9 +212,9 @@ const HealthAI = () => {
                 key={i}
                 onClick={() => sendMessage(q)}
                 disabled={isLoading}
-                className="w-full text-right p-3.5 rounded-2xl border border-slate-100 hover:border-primary-200 hover:bg-primary-50 cursor-pointer transition-all group text-xs font-bold text-slate-600 hover:text-primary-700 disabled:opacity-40"
+                className="w-full text-start p-3.5 rounded-2xl border border-slate-100 hover:border-primary-200 hover:bg-primary-50 cursor-pointer transition-all group text-xs font-bold text-slate-600 hover:text-primary-700 disabled:opacity-40"
               >
-                <span className="text-primary-400 ml-2">💬</span>
+                <span className="text-primary-400 me-2">💬</span>
                 {q}
               </button>
             ))}
@@ -222,18 +223,18 @@ const HealthAI = () => {
 
         {/* Info Card */}
         <div className="glass-card p-8 bg-primary-950 text-white border-none overflow-hidden relative">
-          <div className="relative z-10 space-y-4 text-right">
+          <div className="relative z-10 space-y-4 text-start">
             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl">🧠</div>
-            <h4 className="text-lg font-black leading-tight">مساعد متخصص</h4>
+            <h4 className="text-lg font-black leading-tight">{t('healthai.specialistTitle')}</h4>
             <p className="text-xs text-white/60 font-medium leading-relaxed">
-              هذا المساعد متخصص حصرياً في السكري وضغط الدم. النصائح المقدمة إرشادية ولا تغني عن استشارة طبيبك.
+              {t('healthai.specialistDesc')}
             </p>
             <div className="flex items-center gap-2 bg-white/10 rounded-xl p-3">
               <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
-              <span className="text-xs text-white/80 font-bold">مدعوم بتقنية Google Gemini</span>
+              <span className="text-xs text-white/80 font-bold">{t('healthai.poweredBy')}</span>
             </div>
           </div>
-          <div className="absolute -bottom-10 -left-10 text-9xl opacity-10 -rotate-12">🤖</div>
+          <div className="absolute -bottom-10 -end-10 text-9xl opacity-10 -rotate-12">🤖</div>
         </div>
       </div>
     </div>

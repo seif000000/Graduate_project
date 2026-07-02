@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
 import { MapPin } from 'lucide-react';
+import { useLang } from '../context/LanguageContext';
 
 const center = { lat: 30.0444, lng: 31.2357 };
 
@@ -16,6 +17,7 @@ const DefaultIcon = L.icon({
 
 // A component to catch map clicks and move the marker
 const LocationMarker = ({ position, setPosition }) => {
+  const { t } = useLang();
   const markerRef = useRef(null);
   
   useMapEvent('click', (e) => {
@@ -43,13 +45,14 @@ const LocationMarker = ({ position, setPosition }) => {
       icon={DefaultIcon}
     >
       <Popup minWidth={90}>
-        <div className="text-center font-cairo font-bold">الموقع المحدد للعنوان</div>
+        <div className="text-center font-cairo font-bold">{t('locationPicker.selectedLocation')}</div>
       </Popup>
     </Marker>
   )
 }
 
 const LocationPickerMap = ({ onLocationSelect, defaultLocation = null }) => {
+  const { t } = useLang();
   const [position, setPosition] = useState(defaultLocation || center);
 
   useEffect(() => {
@@ -61,7 +64,7 @@ const LocationPickerMap = ({ onLocationSelect, defaultLocation = null }) => {
   return (
     <div className="w-full text-right space-y-2">
       <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2 flex items-center gap-2 justify-end">
-        حدد موقعك على الخريطة <MapPin size={14} className="text-primary-500" />
+        {t('locationPicker.pickPrompt')} <MapPin size={14} className="text-primary-500" />
       </label>
       <div className="w-full h-64 rounded-2xl overflow-hidden shadow-inner border-2 border-slate-100 z-0 relative">
         <MapContainer 
@@ -77,7 +80,7 @@ const LocationPickerMap = ({ onLocationSelect, defaultLocation = null }) => {
           <LocationMarker position={position} setPosition={setPosition} />
         </MapContainer>
       </div>
-      <p className="text-[10px] text-slate-500 font-bold">يمكنك سحب العلامة الزرقاء لتغيير الموقع بدقة.</p>
+      <p className="text-[10px] text-slate-500 font-bold">{t('locationPicker.dragHint')}</p>
     </div>
   );
 };

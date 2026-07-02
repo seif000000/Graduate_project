@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Github, Linkedin, Mail, Heart, Code2, Cpu, Globe, BookOpen, Loader2, Users } from 'lucide-react';
 import { getTeamMembers } from '../api';
+import { useLang } from '../context/LanguageContext';
 
 // ══════════════════════════════════════════════════════════════
 //  🔧 PLATFORM STATS — عدّل الأرقام هنا
 // ══════════════════════════════════════════════════════════════
 const STATS = [
-  { label: 'تبرعات دواء', value: '500+' },
-  { label: 'مستخدم مسجل', value: '200+' },
-  { label: 'صيدلية شريكة', value: '30+' },
-  { label: 'استغاثة تم الرد عليها', value: '150+' },
+  { labelKey: 'about.stat.donations', value: '500+' },
+  { labelKey: 'about.stat.users', value: '200+' },
+  { labelKey: 'about.stat.pharmacies', value: '30+' },
+  { labelKey: 'about.stat.rescues', value: '150+' },
 ];
 
 // Palette for member cards (cycles based on index)
@@ -80,7 +81,7 @@ function MemberCard({ member, index }) {
 
       {/* Icon badge */}
       <div
-        className={`absolute top-6 left-6 w-10 h-10 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg opacity-90`}
+        className={`absolute top-6 start-6 w-10 h-10 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg opacity-90`}
       >
         <Icon size={18} className="text-white" />
       </div>
@@ -128,6 +129,7 @@ function MemberCard({ member, index }) {
 }
 
 export default function About() {
+  const { t } = useLang();
   const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -139,11 +141,11 @@ export default function About() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6]" dir="rtl">
+    <div className="min-h-screen bg-[#FAF9F6]">
       {/* ── Hero ─────────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-teal-500 text-white">
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-teal-300/10 blur-3xl" />
+        <div className="absolute -top-24 -end-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute -bottom-16 -start-16 w-72 h-72 rounded-full bg-teal-300/10 blur-3xl" />
 
         <div className="relative max-w-5xl mx-auto px-6 py-24 text-center">
           <motion.div
@@ -161,7 +163,7 @@ export default function About() {
             transition={{ delay: 0.15, duration: 0.6 }}
             className="text-5xl md:text-6xl font-black mb-4 tracking-tight"
           >
-            من نحن
+            {t('about.title')}
           </motion.h1>
 
           <motion.p
@@ -170,8 +172,7 @@ export default function About() {
             transition={{ delay: 0.25, duration: 0.6 }}
             className="text-primary-100 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
           >
-            مُسند — منصة تخرج مبادره DEPI تهدف إلى ربط المتبرعين بالدواء بمن يحتاج إليه،
-            مع دعم ذكي لمرضى السكري وارتفاع ضغط الدم.
+            {t('about.heroDesc')}
           </motion.p>
         </div>
       </div>
@@ -191,7 +192,7 @@ export default function About() {
               className="bg-white rounded-2xl shadow-lg shadow-slate-200/60 border border-slate-100 p-5 text-center"
             >
               <p className="text-3xl font-black text-primary-600">{s.value}</p>
-              <p className="text-slate-500 text-sm mt-1">{s.label}</p>
+              <p className="text-slate-500 text-sm mt-1">{t(s.labelKey)}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -200,12 +201,9 @@ export default function About() {
       {/* ── About the project ─────────────────────────────── */}
       <div className="max-w-3xl mx-auto px-6 py-16 text-center">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-          <h2 className="text-3xl font-black text-slate-800 mb-4">عن المشروع</h2>
+          <h2 className="text-3xl font-black text-slate-800 mb-4">{t('about.projectTitle')}</h2>
           <p className="text-slate-600 leading-loose text-base">
-            مُسند هو مشروع تخرج تم تطويره كحل مبتكر لمشكلة نقص الأدوية وتكدسها في نفس الوقت.
-            تتيح المنصة للمستخدمين التبرع بالأدوية غير المستخدمة، والبحث عن الأدوية المتاحة
-            بالقرب منهم مجاناً أو بسعر رمزي، مع نظام استغاثة فوري لحالات الطوارئ ومساعد ذكاء
-            اصطناعي متخصص في إرشاد مرضى السكري وارتفاع ضغط الدم.
+            {t('about.projectDesc')}
           </p>
         </motion.div>
       </div>
@@ -216,8 +214,8 @@ export default function About() {
           initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl font-black text-slate-800 mb-3">فريق العمل</h2>
-          <p className="text-slate-500">الفريق الذي بنى مُسند من الصفر</p>
+          <h2 className="text-3xl font-black text-slate-800 mb-3">{t('about.teamTitle')}</h2>
+          <p className="text-slate-500">{t('about.teamSubtitle')}</p>
         </motion.div>
 
         {/* Loading */}
@@ -231,7 +229,7 @@ export default function About() {
         {!loading && team.length === 0 && (
           <div className="text-center py-16 text-slate-400">
             <Users size={48} className="mx-auto mb-3 opacity-30" />
-            <p>لم يتم إضافة أعضاء الفريق بعد</p>
+            <p>{t('about.teamEmpty')}</p>
           </div>
         )}
 
@@ -248,7 +246,7 @@ export default function About() {
       {/* ── Footer note ───────────────────────────────────── */}
       <div className="border-t border-slate-200 bg-white py-8 text-center">
         <p className="text-slate-400 text-sm">
-          صُنع بـ <Heart size={12} className="inline text-red-400 fill-red-400" /> في مصر &mdash; مشروع تخرج {new Date().getFullYear()}
+          {t('about.footerMade')} <Heart size={12} className="inline text-red-400 fill-red-400" /> {t('about.footerNote')} {new Date().getFullYear()}
         </p>
       </div>
     </div>

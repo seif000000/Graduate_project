@@ -17,19 +17,22 @@ import {
   PlusCircle
 } from 'lucide-react';
 import { donateMedicine, getApiError } from '../api';
+import { identifyMedicineFromImage } from '../services/gemini';
 import toast from 'react-hot-toast';
 import { getCurrentLocation } from '../utils/geolocation';
+import { useLang } from '../context/LanguageContext';
 
 const Donate = () => {
+  const { t } = useLang();
   const [step, setStep] = useState(1);
   const totalSteps = 4;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    medicine_name: 'Glucophage 850mg',
-    generic_name: 'Metformin HCL',
-    quantity: '40 قرص',
-    expiry_date: '2026-12',
-    location: 'المعادي، القاهرة',
+    medicine_name: '',
+    generic_name: '',
+    quantity: '',
+    expiry_date: '',
+    location: '',
     latitude: null,
     longitude: null,
     is_near_expiry: false,
@@ -58,89 +61,48 @@ const Donate = () => {
     }).catch(e => console.warn("Location not provided"));
   }, []);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const fileNameLower = file.name.toLowerCase();
-      let detectedMedicine = {
-        medicine_name: 'Panadol Extra',
-        generic_name: 'Paracetamol',
-        quantity: '24 قرص',
-        expiry_date: '2027-06',
-        is_near_expiry: false,
-        batch_info: 'B12948',
-        price: 'مجاني'
-      };
+  const [isScanning, setIsScanning] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState(null); // 'pharmacy' | 'direct'
 
-      if (fileNameLower.includes('glucophage')) {
-        detectedMedicine = {
-          medicine_name: 'Glucophage 850mg',
-          generic_name: 'Metformin HCL',
-          quantity: '30 قرص',
-          expiry_date: '2026-12',
-          is_near_expiry: false,
-          batch_info: 'G55201',
-          price: 'مجاني'
-        };
-      } else if (fileNameLower.includes('congestal')) {
-        detectedMedicine = {
-          medicine_name: 'Congestal',
-          generic_name: 'Paracetamol, Pseudoephedrine, Chlorpheniramine',
-          quantity: '20 قرص',
-          expiry_date: '2026-10',
-          is_near_expiry: false,
-          batch_info: 'C00281',
-          price: 'مجاني'
-        };
-      } else if (fileNameLower.includes('aspirin')) {
-        detectedMedicine = {
-          medicine_name: 'Aspirin 81mg',
-          generic_name: 'Acetylsalicylic Acid',
-          quantity: '30 قرص',
-          expiry_date: '2027-02',
-          is_near_expiry: false,
-          batch_info: 'A30911',
-          price: 'مجاني'
-        };
-      } else if (fileNameLower.includes('augmentin')) {
-        detectedMedicine = {
-          medicine_name: 'Augmentin 1g',
-          generic_name: 'Amoxicillin / Clavulanic acid',
-          quantity: '14 قرص',
-          expiry_date: '2026-08',
-          is_near_expiry: false,
-          batch_info: 'AUG8819',
-          price: 'مجاني'
-        };
-      } else {
-        // Parse from file name if it's not generic
-        const cleanName = file.name.split('.')[0].replace(/[-_\d]/g, ' ').trim();
-        if (cleanName && !/^(image|photo|captured|camera|upload)/i.test(cleanName)) {
-          const formattedName = cleanName.split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-          detectedMedicine = {
-            medicine_name: formattedName,
-            generic_name: 'يرجى إدخال الاسم العلمي',
-            quantity: 'علبة كاملة',
-            expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().substring(0, 7), // 1 year from now
-            is_near_expiry: false,
-            batch_info: 'غير محدد',
-            price: 'مجاني'
-          };
-        }
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    // Allow re-selecting the same file later
+    e.target.value = '';
+    if (!file) return;
+
+    setIsScanning(true);
+    toast.loading(t('donate.analyzingImage'), { id: 'ocr-scan' });
+
+    try {
+      const result = await identifyMedicineFromImage(file);
+
+      if (!result || !result.name) {
+        toast.error(
+          t('donate.ocrReadError'),
+          { id: 'ocr-scan' }
+        );
+        // Still advance so the user can fill the details manually
+        nextStep();
+        return;
       }
 
-      toast.loading('جاري تحليل الصورة والتعرف على الدواء...', { id: 'ocr-scan', duration: 1500 });
-      
-      setTimeout(() => {
-        setFormData(prev => ({
-          ...prev,
-          ...detectedMedicine
-        }));
-        toast.success(`تم التعرف على الدواء: ${detectedMedicine.medicine_name}`, { id: 'ocr-scan' });
-        nextStep();
-      }, 1500);
+      setFormData(prev => ({
+        ...prev,
+        medicine_name: result.name,
+        generic_name: result.generic_name || prev.generic_name,
+        expiry_date: result.expiry_date || prev.expiry_date,
+      }));
+      toast.success(t('donate.ocrRecognized').replace('{name}', result.name), { id: 'ocr-scan' });
+      nextStep();
+    } catch (error) {
+      console.error('OCR error:', error);
+      toast.error(
+        t('donate.ocrError'),
+        { id: 'ocr-scan' }
+      );
+      nextStep();
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -154,30 +116,30 @@ const Donate = () => {
       setStep(5); // Success state
     } catch (error) {
       console.error("Donation error:", error);
-      toast.error(getApiError(error, 'فشل إرسال التبرع'));
+      toast.error(getApiError(error, t('donate.submitError')));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const steps = [
-    { id: 1, title: 'تصوير الدواء', sub: 'استخدم الكاميرا للمسح التلقائي' },
-    { id: 2, title: 'تفاصيل الدواء', sub: 'تأكيد البيانات والمواصفات' },
-    { id: 3, title: 'حالة الدواء', sub: 'تاريخ الانتهاء والكمية' },
-    { id: 4, title: 'طريقة التسليم', sub: 'اختر أنسب وسيلة لنا ولك' },
+    { id: 1, title: t('donate.step1Title'), sub: t('donate.step1Sub') },
+    { id: 2, title: t('donate.step2Title'), sub: t('donate.step2Sub') },
+    { id: 3, title: t('donate.step3Title'), sub: t('donate.step3Sub') },
+    { id: 4, title: t('donate.step4Title'), sub: t('donate.step4Sub') },
   ];
 
   return (
-    <div className="max-w-4xl mx-auto pb-12" dir="rtl">
+    <div className="max-w-4xl mx-auto pb-12">
       {/* Progress Header */}
       <header className="mb-12 text-center">
-        <h1 className="text-4xl font-black text-slate-800 mb-2">🎁 تبرع بدواء</h1>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-10">ساعدنا نوفر الدواء لمستحقيه — خطوة بخطوة</p>
-        
+        <h1 className="text-4xl font-black text-slate-800 mb-2">{t('donate.pageTitle')}</h1>
+        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-10">{t('donate.pageSub')}</p>
+
         <div className="flex items-center justify-between relative max-w-2xl mx-auto">
-          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0"></div>
-          <div 
-            className="absolute top-1/2 right-0 h-0.5 bg-primary-500 -translate-y-1/2 z-0 transition-all duration-500"
+          <div className="absolute top-1/2 start-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0"></div>
+          <div
+            className="absolute top-1/2 start-0 h-0.5 bg-primary-500 -translate-y-1/2 z-0 transition-all duration-500"
             style={{ width: `${((step - 1) / (totalSteps - 1)) * 100}%` }}
           ></div>
           
@@ -215,31 +177,31 @@ const Donate = () => {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-8 flex-grow"
             >
-              <div className="text-right space-y-2">
-                 <h2 className="text-2xl font-black text-slate-800">التقط صورة لعلبة الدواء 📸</h2>
-                 <p className="text-slate-500">نظامنا الذكي بيتعرف على اسم الدواء وتاريخ الصلاحية أوتوماتيكياً من الصورة.</p>
+              <div className="text-start space-y-2">
+                 <h2 className="text-2xl font-black text-slate-800">{t('donate.captureHeading')}</h2>
+                 <p className="text-slate-500">{t('donate.captureDesc')}</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
-                 <label className="cursor-pointer aspect-square rounded-3xl border-4 border-dashed border-primary-100 bg-primary-50/30 flex flex-col items-center justify-center gap-4 group hover:bg-primary-50 transition-all relative overflow-hidden">
-                    <input type="file" accept="image/*" capture="environment" onChange={handleImageUpload} className="hidden" />
+                 <label className={`aspect-square rounded-3xl border-4 border-dashed border-primary-100 bg-primary-50/30 flex flex-col items-center justify-center gap-4 group transition-all relative overflow-hidden ${isScanning ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:bg-primary-50'}`}>
+                    <input type="file" accept="image/*" capture="environment" onChange={handleImageUpload} disabled={isScanning} className="hidden" />
                     <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-primary-600 shadow-xl shadow-primary-200/50 group-hover:scale-110 transition-transform">
-                       <Camera size={32} />
+                       {isScanning ? <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" /> : <Camera size={32} />}
                     </div>
-                    <span className="font-black text-primary-700">فتح الكاميرا للمسح</span>
+                    <span className="font-black text-primary-700">{isScanning ? t('donate.analyzing') : t('donate.openCamera')}</span>
                  </label>
-                 <label className="cursor-pointer aspect-square rounded-3xl border-4 border-dashed border-slate-100 bg-slate-50/30 flex flex-col items-center justify-center gap-4 group hover:bg-slate-50 transition-all font-bold text-slate-400 relative overflow-hidden">
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                 <label className={`aspect-square rounded-3xl border-4 border-dashed border-slate-100 bg-slate-50/30 flex flex-col items-center justify-center gap-4 group transition-all font-bold text-slate-400 relative overflow-hidden ${isScanning ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:bg-slate-50'}`}>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} disabled={isScanning} className="hidden" />
                     <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-xl shadow-slate-100 transition-transform group-hover:scale-110">
-                       <Upload size={32} />
+                       {isScanning ? <div className="w-8 h-8 border-4 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <Upload size={32} />}
                     </div>
-                    <span>ارفع صورة من الجهاز</span>
+                    <span>{isScanning ? t('donate.analyzing') : t('donate.uploadFromDevice')}</span>
                  </label>
               </div>
 
-              <div className="bg-amber-50 p-6 rounded-2xl flex gap-4 text-right border border-amber-100">
+              <div className="bg-amber-50 p-6 rounded-2xl flex gap-4 text-start border border-amber-100">
                  <Info className="text-amber-600 shrink-0" size={24} />
-                 <p className="text-sm text-amber-800 leading-relaxed font-medium">نصيحة: تأكد من وضوح اسم الدواء (العلمي والتجاري) والباركود في الصورة لضمان أفضل نتيجة للتحقق الفوري.</p>
+                 <p className="text-sm text-amber-800 leading-relaxed font-medium">{t('donate.tip')}</p>
               </div>
             </motion.div>
           )}
@@ -252,14 +214,14 @@ const Donate = () => {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-8 flex-grow"
             >
-              <div className="text-right space-y-2">
-                 <h2 className="text-2xl font-black text-slate-800">تأكيد بيانات الدواء 📝</h2>
-                 <p className="text-slate-500">تم التعرف على البيانات التالية، يرجى التأكد من صحتها.</p>
+              <div className="text-start space-y-2">
+                 <h2 className="text-2xl font-black text-slate-800">{t('donate.confirmHeading')}</h2>
+                 <p className="text-slate-500">{t('donate.confirmDesc')}</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 text-right">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 text-start">
                  <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">الاسم التجاري</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ps-2">{t('donate.tradeName')}</label>
                     <input 
                       type="text" 
                       value={formData.medicine_name}
@@ -268,7 +230,7 @@ const Donate = () => {
                     />
                  </div>
                  <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">الاسم العلمي</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ps-2">{t('donate.genericName')}</label>
                     <input 
                       type="text" 
                       value={formData.generic_name}
@@ -277,18 +239,18 @@ const Donate = () => {
                     />
                  </div>
                  <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">الشركة المصنعة</label>
-                    <input 
-                      type="text" 
-                      placeholder="مثلاً: شركة النيل للأدوية"
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ps-2">{t('donate.manufacturer')}</label>
+                    <input
+                      type="text"
+                      placeholder={t('donate.manufacturerPlaceholder')}
                       className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl focus:border-primary-500 transition-all font-bold text-slate-800" 
                     />
                  </div>
                  <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2">الباركود (اختياري)</label>
-                    <input 
-                       type="text" 
-                       placeholder="أدخل الباركود إذا وجد..."
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ps-2">{t('donate.barcode')}</label>
+                    <input
+                       type="text"
+                       placeholder={t('donate.barcodePlaceholder')}
                        className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl focus:border-primary-500 transition-all font-bold text-slate-800" 
                     />
                  </div>
@@ -296,7 +258,7 @@ const Donate = () => {
 
               <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3">
                  <ShieldCheck className="text-emerald-600" size={20} />
-                 <span className="text-sm font-black text-emerald-800">الدواء مطابق للمواصفات وآمن للتداول ✅</span>
+                 <span className="text-sm font-black text-emerald-800">{t('donate.safeBadge')}</span>
               </div>
             </motion.div>
           )}
@@ -309,16 +271,16 @@ const Donate = () => {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-8 flex-grow"
             >
-               <div className="text-right space-y-2">
-                 <h2 className="text-2xl font-black text-slate-800">الكمية وتاريخ الانتهاء 📅</h2>
-                 <p className="text-slate-500">هذه البيانات ضرورية لضمان سلامة المرضى الآخرين.</p>
+               <div className="text-start space-y-2">
+                 <h2 className="text-2xl font-black text-slate-800">{t('donate.qtyHeading')}</h2>
+                 <p className="text-slate-500">{t('donate.qtyDesc')}</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 text-right">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 text-start">
                   <div className="space-y-6">
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2 flex items-center gap-2">
-                          <Calendar size={14} className="text-primary-500" /> تاريخ انتهاء الصلاحية
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ps-2 flex items-center gap-2">
+                          <Calendar size={14} className="text-primary-500" /> {t('donate.expiryLabel')}
                         </label>
                         <input 
                           type="month" 
@@ -328,13 +290,13 @@ const Donate = () => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pr-2 flex items-center gap-2">
-                           <Package size={14} className="text-primary-500" /> اجمالي الكمية المتاحة
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ps-2 flex items-center gap-2">
+                           <Package size={14} className="text-primary-500" /> {t('donate.totalQtyLabel')}
                         </label>
                         <div className="flex gap-4">
-                           <input 
-                             type="text" 
-                             placeholder="مثلاً: 2 شريط / 1 علبة" 
+                           <input
+                             type="text"
+                             placeholder={t('donate.qtyPlaceholder')}
                              value={formData.quantity}
                              onChange={(e) => setFormData({...formData, quantity: e.target.value})}
                              className="flex-grow bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl focus:border-primary-500 transition-all font-bold text-slate-800" 
@@ -349,18 +311,18 @@ const Donate = () => {
                                  onChange={(e) => setFormData({...formData, is_near_expiry: e.target.checked})}
                                  className="w-5 h-5 rounded-lg border-2 border-slate-200 text-primary-500 focus:ring-primary-500"
                                />
-                               <span className="text-sm font-bold text-slate-700 group-hover:text-primary-600 transition-colors">الدواء يقترب من انتهاء الصلاحية</span>
+                               <span className="text-sm font-bold text-slate-700 group-hover:text-primary-600 transition-colors">{t('donate.nearExpiryLabel')}</span>
                             </label>
                          </div>
                          
                          <div className="space-y-2">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest block pr-1">رقم التشغيلة / Batch No (اختياري)</label>
-                            <input 
-                              type="text" 
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest block ps-1">{t('donate.batchLabel')}</label>
+                            <input
+                              type="text"
                               value={formData.batch_info}
                               onChange={(e) => setFormData({...formData, batch_info: e.target.value})}
-                              placeholder="أدخل رقم التشغيلة للتتبع..."
-                              className="w-full bg-slate-50 border border-slate-200 h-14 pr-6 rounded-2xl outline-none focus:border-primary-500 transition-all font-bold text-sm"
+                              placeholder={t('donate.batchPlaceholder')}
+                              className="w-full bg-slate-50 border border-slate-200 h-14 ps-6 rounded-2xl outline-none focus:border-primary-500 transition-all font-bold text-sm"
                             />
                          </div>
                       </div>
@@ -370,8 +332,8 @@ const Donate = () => {
                   <div className="bg-slate-50/50 rounded-[2rem] p-8 border border-slate-100 flex flex-col items-center justify-center text-center space-y-4">
                       <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-3xl">💊</div>
                       <div className="space-y-1">
-                         <h4 className="text-lg font-black text-slate-800">أقراص مغلفة</h4>
-                         <p className="text-xs font-bold text-slate-400">يرجى التأكد من أن الأشرطة لم يتم فتحها</p>
+                         <h4 className="text-lg font-black text-slate-800">{t('donate.coatedTablets')}</h4>
+                         <p className="text-xs font-bold text-slate-400">{t('donate.coatedNote')}</p>
                       </div>
                   </div>
               </div>
@@ -388,25 +350,45 @@ const Donate = () => {
             >
                <div className="text-center space-y-2">
                  <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner animate-fade-in">✅</div>
-                 <h2 className="text-2xl font-black text-slate-800">رائع! الدواء جاهز للتبرع 🎊</h2>
-                 <p className="text-slate-500 max-w-sm mx-auto">اختر كيف تريد تسليم الدواء للبدء في إنقاذ حياة إنسان اليوم.</p>
+                 <h2 className="text-2xl font-black text-slate-800">{t('donate.readyHeading')}</h2>
+                 <p className="text-slate-500 max-w-sm mx-auto">{t('donate.readyDesc')}</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 text-right">
-                  <button className="p-8 rounded-3xl border-2 border-primary-100 bg-primary-50/20 hover:bg-primary-50 transition-all group text-right space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 text-start">
+                  <button
+                     onClick={() => setDeliveryMethod('pharmacy')}
+                     className={`p-8 rounded-3xl border-2 transition-all group text-start space-y-2 ${
+                       deliveryMethod === 'pharmacy'
+                       ? 'border-primary-500 bg-primary-50 ring-4 ring-primary-500/10'
+                       : 'border-primary-100 bg-primary-50/20 hover:bg-primary-50'
+                     }`}
+                  >
                      <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary-600 mb-4 transition-transform group-hover:scale-110">
                         <MapPin size={24} />
                      </div>
-                     <h3 className="font-black text-primary-900">أقرب صيدلية مشاركة</h3>
-                     <p className="text-xs text-primary-700 font-medium leading-relaxed">يمكنك ترك الدواء في صيدلية "الإيمان" بوسط البلد، وسنقوم بتوجيهه للمريض.</p>
+                     <h3 className="font-black text-primary-900 flex items-center gap-2">
+                        {t('donate.nearestPharmacy')}
+                        {deliveryMethod === 'pharmacy' && <CheckCircle2 size={16} className="text-primary-600" />}
+                     </h3>
+                     <p className="text-xs text-primary-700 font-medium leading-relaxed">{t('donate.nearestPharmacyDesc')}</p>
                   </button>
 
-                  <button className="p-8 rounded-3xl border-2 border-slate-100 bg-white hover:bg-slate-50 transition-all group text-right space-y-2 shadow-sm">
+                  <button
+                     onClick={() => setDeliveryMethod('direct')}
+                     className={`p-8 rounded-3xl border-2 transition-all group text-start space-y-2 shadow-sm ${
+                       deliveryMethod === 'direct'
+                       ? 'border-blue-500 bg-blue-50 ring-4 ring-blue-500/10'
+                       : 'border-slate-100 bg-white hover:bg-slate-50'
+                     }`}
+                  >
                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 mb-4 transition-transform group-hover:scale-110">
                         <Users className="text-blue-500" size={24} />
                      </div>
-                     <h3 className="font-black text-slate-800">التوصيل المباشر للمريض</h3>
-                     <p className="text-xs text-slate-400 font-medium leading-relaxed">سنقوم بربطك بمريض في محيطك الجغرافي تم التحقق من حالته الصحية مسبقاً.</p>
+                     <h3 className="font-black text-slate-800 flex items-center gap-2">
+                        {t('donate.directDelivery')}
+                        {deliveryMethod === 'direct' && <CheckCircle2 size={16} className="text-blue-600" />}
+                     </h3>
+                     <p className="text-xs text-slate-400 font-medium leading-relaxed">{t('donate.directDeliveryDesc')}</p>
                   </button>
               </div>
             </motion.div>
@@ -421,12 +403,12 @@ const Donate = () => {
             >
               <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-5xl shadow-xl shadow-emerald-500/10">✨</div>
               <div className="space-y-2">
-                <h2 className="text-3xl font-black text-slate-800">تم نشر تبرعك بنجاح!</h2>
-                <p className="text-slate-500 max-w-sm mx-auto font-bold">شكراً لكونك سبباً في شفاء إنسان. سيظهر دواءك الآن في نتائج البحث وطلبات الاستغاثة.</p>
+                <h2 className="text-3xl font-black text-slate-800">{t('donate.successHeading')}</h2>
+                <p className="text-slate-500 max-w-sm mx-auto font-bold">{t('donate.successDesc')}</p>
               </div>
               <div className="flex justify-center gap-4 pt-4">
-                 <button onClick={() => setStep(1)} className="btn-primary h-14 px-8">تبرع بدواء جديد</button>
-                 <button onClick={() => window.location.href = '/dashboard'} className="btn-secondary h-14 px-8">لوحة التحكم</button>
+                 <button onClick={() => setStep(1)} className="btn-primary h-14 px-8">{t('donate.donateNew')}</button>
+                 <button onClick={() => window.location.href = '/dashboard'} className="btn-secondary h-14 px-8">{t('donate.dashboard')}</button>
               </div>
             </motion.div>
           )}
@@ -440,32 +422,33 @@ const Donate = () => {
             className={`btn-secondary h-14 px-8 ${step === 1 ? 'opacity-0 pointer-events-none' : ''}`}
           >
             <ArrowRight size={18} />
-            السابق
+            {t('donate.prev')}
           </button>
 
           {step < totalSteps ? (
-            <button 
+            <button
               onClick={nextStep}
               className="btn-primary h-14 px-10 shadow-primary-600/20"
             >
-              المتابعة للخطوة التالية
+              {t('donate.nextStep')}
               <ArrowLeft size={18} />
             </button>
           ) : step === 4 ? (
-            <button 
+            <button
               onClick={handleDonate}
-              disabled={isSubmitting}
-              className="btn-primary h-14 px-10 shadow-primary-600/20 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+              disabled={isSubmitting || !deliveryMethod}
+              title={!deliveryMethod ? t('donate.chooseDeliveryFirst') : ''}
+              className="btn-primary h-14 px-10 shadow-primary-600/20 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'جاري النشر...' : 'تأكيد ونشر التبرع الآن'}
+              {isSubmitting ? t('donate.publishing') : !deliveryMethod ? t('donate.chooseDelivery') : t('donate.confirmPublish')}
               <CheckCircle2 size={18} />
             </button>
           ) : (
-            <button 
+            <button
               onClick={() => { setStep(1); }}
               className="btn-primary h-14 px-10 shadow-primary-600/20"
             >
-              تبرع بدواء آخر
+              {t('donate.donateAnother')}
               <PlusCircle size={18} />
             </button>
           )}
@@ -476,12 +459,12 @@ const Donate = () => {
       <footer className="mt-12 flex items-center justify-center gap-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
          <div className="flex items-center gap-2">
             <ShieldCheck size={18} className="text-primary-600" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">بيانات مشفرة وآمنة</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">{t('donate.encryptedData')}</span>
          </div>
          <div className="w-1 h-1 rounded-full bg-slate-300"></div>
          <div className="flex items-center gap-2">
             <Stethoscope size={18} className="text-primary-600" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">تحت إشراف طبي كامل</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">{t('donate.medicalSupervision')}</span>
          </div>
       </footer>
     </div>

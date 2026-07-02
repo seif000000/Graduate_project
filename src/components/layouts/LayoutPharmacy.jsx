@@ -1,22 +1,24 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useLang } from '../../context/LanguageContext';
+import { LanguageToggle } from '../LanguageToggle';
 import {
   Building2, Package, TrendingUp, Settings, LogOut,
-  Clock, Bell, ShieldCheck, CreditCard
+  Clock, Bell, ShieldCheck
 } from 'lucide-react';
 
 const pharmacyNav = [
-  { label: 'مخزون الصيدلية', icon: Package, path: '/pharmacy/inventory' },
-  { label: 'أدوية قرب الانتهاء', icon: Clock, path: '/pharmacy/near-expiry' },
-  { label: 'إحصائيات الصيدلية', icon: TrendingUp, path: '/pharmacy/stats' },
-  { label: 'التحكم في الأسعار', icon: Settings, path: '/pharmacy/pricing' },
+  { labelKey: 'nav.pharmacyInventory', icon: Package, path: '/pharmacy/inventory' },
+  { labelKey: 'nav.pharmacyNearExpiry', icon: Clock, path: '/pharmacy/near-expiry' },
+  { labelKey: 'nav.pharmacyStats', icon: TrendingUp, path: '/pharmacy/stats' },
+  { labelKey: 'nav.pricing', icon: Settings, path: '/pharmacy/pricing' },
 ];
 
-const LayoutPharmacy = ({ children, title }) => {
+const LayoutPharmacy = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t } = useLang();
 
   const handleLogout = () => {
     logout();
@@ -24,11 +26,11 @@ const LayoutPharmacy = ({ children, title }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 relative overflow-hidden flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden flex flex-col">
       {/* Background ambient light */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-200/10 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-300/5 rounded-full blur-[120px] pointer-events-none"></div>
-      
+      <div className="absolute top-0 end-0 w-[500px] h-[500px] bg-cyan-200/10 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-0 start-0 w-[600px] h-[600px] bg-blue-300/5 rounded-full blur-[120px] pointer-events-none"></div>
+
       {/* Top Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm relative">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
@@ -38,10 +40,10 @@ const LayoutPharmacy = ({ children, title }) => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">مُسند الصيدلاني</h1>
+                <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">{t('shell.pharmacyBrand')}</h1>
                 {user?.is_verified && (
                   <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[9px] font-black rounded-md flex items-center gap-1">
-                    <ShieldCheck size={10} /> موثق ✓
+                    <ShieldCheck size={10} /> {t('shell.verified')}
                   </span>
                 )}
               </div>
@@ -50,24 +52,25 @@ const LayoutPharmacy = ({ children, title }) => {
           </div>
 
           <div className="flex items-center gap-4">
+            <LanguageToggle className="hidden sm:inline-flex" />
             <button className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center hover:bg-slate-100 text-slate-500 transition-all border border-slate-100/50 shadow-sm">
               <Bell size={16} />
             </button>
-            
+
             <div className="h-6 w-[1px] bg-slate-200"></div>
 
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-xs font-black text-white shrink-0 shadow-sm">
                 {user?.full_name?.slice(0, 2) || 'صي'}
               </div>
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-black text-slate-800 max-w-[120px] truncate">{user?.full_name || 'الصيدلية'}</p>
-                <p className="text-[9px] text-slate-400 font-bold">بوابة الشريك 🏥</p>
+              <div className="text-start hidden sm:block">
+                <p className="text-xs font-black text-slate-800 max-w-[120px] truncate">{user?.full_name || t('shell.pharmacy')}</p>
+                <p className="text-[9px] text-slate-400 font-bold">{t('role.pharmacyPortal')}</p>
               </div>
-              <button 
-                onClick={handleLogout} 
+              <button
+                onClick={handleLogout}
                 className="p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all"
-                title="تسجيل الخروج"
+                title={t('shell.logout')}
               >
                 <LogOut size={16} />
               </button>
@@ -91,7 +94,7 @@ const LayoutPharmacy = ({ children, title }) => {
                     }`}
                 >
                   <item.icon size={14} className={isActive ? "text-cyan-600" : "text-slate-400"} />
-                  <span>{item.label}</span>
+                  <span>{t(item.labelKey)}</span>
                 </Link>
               );
             })}
@@ -105,7 +108,7 @@ const LayoutPharmacy = ({ children, title }) => {
       </main>
 
       <footer className="bg-white/80 border-t border-slate-100 py-6 text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest relative z-10">
-        بوابة الشراكة الطبية لمنصة مسند &copy; {new Date().getFullYear()} — نسير معاً نحو غدٍ أفضل
+        {t('footer.pharmacyTagline')} &copy; {new Date().getFullYear()}
       </footer>
     </div>
   );
