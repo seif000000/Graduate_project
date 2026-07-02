@@ -97,6 +97,8 @@ export const getAdminStats = () => api.get('/users/admin/stats');
 export const getMyNotifications = () => api.get('/users/me/notifications');
 export const markNotificationsRead = () => api.post('/users/me/notifications/read-all');
 export const getAdminReports = () => api.get('/users/admin/reports');
+export const resolveReport = (id, status = 'resolved') => api.patch(`/users/admin/reports/${id}`, { status });
+export const banUser = (userId) => api.post(`/users/admin/users/${userId}/ban`);
 export const submitReport = (data) => api.post('/users/me/report', data);
 // Admin absolute controls
 export const adminDeleteDonation = (id) => api.delete(`/users/admin/donations/${id}`);
@@ -109,6 +111,7 @@ export const adminVerifyUser = (userId, verified) => api.patch(`/users/${userId}
 
 // ─── Health AI ────────────────────────────────────────────────────────────
 export const askAI = (message) => api.post('/chat/ask', { message });
+export const identifyMedicine = (data) => api.post('/chat/identify-medicine', data);
 
 // ─── Vouchers ─────────────────────────────────────────────────────────────
 export const getMyVouchers = () => api.get('/vouchers/me');
@@ -118,6 +121,7 @@ export const redeemVoucher = (voucherId) => api.post(`/vouchers/redeem/${voucher
 export const getMedicalReports = () => api.get('/medical-history/reports');
 export const getMedicationLogs = () => api.get('/medical-history/logs');
 export const uploadMedicalReport = (data) => api.post('/medical-history/reports', data);
+export const deleteMedicalReport = (id) => api.delete(`/medical-history/reports/${id}`);
 
 // ─── Inbox (Chat) ─────────────────────────────────────────────────────────
 export const getInboxChats = () => api.get('/inbox/chats');

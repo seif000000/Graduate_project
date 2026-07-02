@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
-import { MapPin, Clock, Package, Heart, Star, ChevronRight, AlertCircle } from 'lucide-react';
+import { MapPin, Clock, Package, ChevronRight, AlertCircle } from 'lucide-react';
+import { RatingStars, VerifiedBadge } from './RatingStars';
+import { useLang } from '../context/LanguageContext';
 
 const MedicineCard = ({ med, onDetail }) => {
+  const { t } = useLang();
   const isFree = med.price === 'مجاني' || med.price === 0;
   const isExpiringSoon = med.expiryStatus === 'قريب';
 
@@ -20,13 +23,15 @@ const MedicineCard = ({ med, onDetail }) => {
         {/* Expiry Badge */}
         <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] font-black text-slate-600 flex items-center gap-1 shadow-sm uppercase tracking-wider">
           <Clock size={10} className={isExpiringSoon ? 'text-red-500 animate-pulse' : 'text-primary-600'} />
-          انتهاء: {med.expiryDate || med.expiry_date}
+          {t('card.expiry')}: {med.expiryDate || med.expiry_date}
         </div>
         
-        {/* Verification Mark */}
-        <div className="absolute top-3 right-3 w-8 h-8 bg-white/50 backdrop-blur-md rounded-full flex items-center justify-center text-primary-600 shadow-sm border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
-           <Star size={14} fill="currentColor" />
-        </div>
+        {/* Verified donor / pharmacy badge */}
+        {med.donor_verified && (
+          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-xl shadow-sm border border-white/40">
+             <VerifiedBadge size={12} />
+          </div>
+        )}
       </div>
 
       {/* Body */}
@@ -36,7 +41,7 @@ const MedicineCard = ({ med, onDetail }) => {
             {med.name}
           </h3>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
-            {med.genericName || med.generic_name || 'الاسم العلمي غير مسجل'}
+            {med.genericName || med.generic_name || t('card.genericUnknown')}
           </p>
         </div>
 
@@ -45,7 +50,7 @@ const MedicineCard = ({ med, onDetail }) => {
              <Package size={10} /> {med.quantity}
            </span>
            <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tighter ${isFree ? 'bg-red-50 text-red-600' : 'bg-primary-50 text-primary-600'}`}>
-             {isFree ? '❤️ مجاني' : `💰 ${med.price} ج.م`}
+             {isFree ? t('card.free') : `💰 ${med.price} ${t('common.currency')}`}
            </span>
         </div>
 
@@ -55,7 +60,7 @@ const MedicineCard = ({ med, onDetail }) => {
            {med.distance && (
              <>
                <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-               <span className="text-primary-600">يبعد {med.distance} كم</span>
+               <span className="text-primary-600">{med.distance} {t('card.km')}</span>
              </>
            )}
         </div>
@@ -63,20 +68,20 @@ const MedicineCard = ({ med, onDetail }) => {
         {med.is_near_expiry && (
           <div className="mt-3 py-1 px-3 rounded-lg bg-amber-50 border border-amber-100 flex items-center gap-2">
              <AlertCircle size={10} className="text-amber-600" />
-             <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest">تحذير: يقترب من انتهاء الصلاحية</span>
+             <span className="text-[9px] font-black text-amber-700 uppercase tracking-widest">{t('card.nearExpiryWarn')}</span>
           </div>
         )}
         
         {med.batch_info && (
           <div className="mt-2 text-[9px] font-bold text-slate-400">
-             تشغيلة: {med.batch_info}
+             {t('card.batch')}: {med.batch_info}
           </div>
         )}
       </div>
 
       {/* Footer / Action */}
       <div className="px-6 py-4 border-t border-slate-50 flex items-center justify-between bg-slate-50/30">
-        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{med.addedAgo || 'منذ وقت قصير'}</span>
+        <RatingStars rating={med.donor_rating} count={med.donor_rating_count} />
         <button 
           onClick={(e) => {
             e.stopPropagation();
@@ -84,7 +89,7 @@ const MedicineCard = ({ med, onDetail }) => {
           }}
           className="flex items-center gap-2 text-xs font-black text-primary-600 hover:gap-3 transition-all"
         >
-          التفاصيل
+          {t('card.details')}
           <ChevronRight size={14} className="rotate-180" />
         </button>
       </div>
