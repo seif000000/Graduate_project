@@ -1,10 +1,28 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from typing import List, Optional
 from app.db.database import get_session
 from app.models.medicine import Medicine, Donation, DonationCreate
 from app.models.user import User
+from app.models.feedback import Feedback
 from app.api.deps import get_current_active_user
+
+
+def get_ratings_map(session: Session, user_ids: list) -> dict:
+    """Return {user_id: {"rating": avg, "count": n}} for the given target users."""
+    ids = [uid for uid in set(user_ids) if uid is not None]
+    if not ids:
+        return {}
+    rows = session.exec(
+        select(Feedback.target_id, func.avg(Feedback.rating), func.count(Feedback.id))
+        .where(Feedback.target_id.in_(ids))
+        .group_by(Feedback.target_id)
+    ).all()
+    return {
+        # pyrefly: ignore [unnecessary-type-conversion]
+        tid: {"rating": round(float(avg), 1), "count": int(cnt)}
+        for tid, avg, cnt in rows
+    }
 
 router = APIRouter(prefix="/medicine", tags=["medicine"])
 
@@ -48,6 +66,7 @@ def get_inventory(q: Optional[str] = None, session: Session = Depends(get_sessio
         statement = statement.where(Medicine.name.contains(q) | Medicine.generic_name.contains(q))
     
     results = session.exec(statement).all()
+    ratings = get_ratings_map(session, [d.donor_id for d, _ in results])
     # Format the response
     return [
         {
@@ -65,7 +84,10 @@ def get_inventory(q: Optional[str] = None, session: Session = Depends(get_sessio
             "added_at": d.added_at,
             "donor_id": d.donor_id,
             "donor_name": d.donor.full_name if d.donor else "متبرع فاعل خير",
-            "donor_role": d.donor.role if d.donor else "user"
+            "donor_role": d.donor.role if d.donor else "user",
+            "donor_verified": bool(d.donor.is_verified) if d.donor else False,
+            "donor_rating": ratings.get(d.donor_id, {}).get("rating"),
+            "donor_rating_count": ratings.get(d.donor_id, {}).get("count", 0),
         } for d, m in results
     ]
 

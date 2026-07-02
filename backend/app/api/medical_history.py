@@ -60,3 +60,16 @@ def add_report(
     session.commit()
     session.refresh(report)
     return report
+
+@router.delete("/reports/{report_id}")
+def delete_report(
+    report_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    report = session.get(MedicalReport, report_id)
+    if not report or report.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="المستند غير موجود")
+    session.delete(report)
+    session.commit()
+    return {"message": "تم حذف المستند بنجاح"}

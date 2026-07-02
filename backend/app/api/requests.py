@@ -4,7 +4,7 @@ from typing import List, Optional
 from app.db.database import get_session
 from app.models.request import MedicineRequest, RequestResponse, MedicineRequestCreate
 from app.models.user import User
-from app.models.medicine import Donation
+from app.models.medicine import Donation, Medicine
 from app.api.deps import get_current_active_user, get_current_admin
 
 router = APIRouter(prefix="/requests", tags=["requests"])
@@ -49,24 +49,61 @@ def get_medicine_analytics(
     admin: User = Depends(get_current_admin),
     session: Session = Depends(get_session)
 ):
-    """Fetch aggregate analytics for medicines."""
-    # This would normally be complex SQL, here's a simplified version
+    """Fetch aggregate analytics for medicines from real data."""
     total_requests = session.exec(select(func.count(MedicineRequest.id))).one()
     total_donations = session.exec(select(func.count(Donation.id))).one()
-    
-    # Get top medicines (mocking logic but can be real with group_by)
-    top_medicines = [
-        {"name": "Insulin Glargine", "requests": 124, "available": 12, "status": "scarcity", "trend": "up"},
-        {"name": "Glucophage 850mg", "requests": 88, "available": 41, "status": "stable", "trend": "down"},
-        {"name": "Atorvastatin 40mg", "requests": 56, "available": 97, "status": "surplus", "trend": "up"},
-    ]
-    
+
+    # Success rate = fulfilled requests / all requests
+    fulfilled = session.exec(
+        select(func.count(MedicineRequest.id)).where(
+            MedicineRequest.status == "fulfilled"
+        )
+    ).one()
+    success_rate = round((fulfilled / total_requests) * 100) if total_requests else 0
+
+    # Available donations flagged as near expiry
+    near_expiry_count = session.exec(
+        select(func.count(Donation.id)).where(
+            Donation.is_near_expiry == True,  # noqa: E712
+            Donation.status == "available",
+        )
+    ).one()
+
+    # Top requested medicines (grouped by name) with live availability
+    req_counts = session.exec(
+        select(MedicineRequest.medicine_name, func.count(MedicineRequest.id))
+        .group_by(MedicineRequest.medicine_name)
+        .order_by(func.count(MedicineRequest.id).desc())
+        .limit(5)
+    ).all()
+
+    top_medicines = []
+    for name, req_count in req_counts:
+        available = session.exec(
+            select(func.count(Donation.id))
+            .join(Medicine)
+            .where(Medicine.name == name, Donation.status == "available")
+        ).one()
+        if available < req_count:
+            status = "scarcity"
+        elif available > req_count * 2:
+            status = "surplus"
+        else:
+            status = "stable"
+        top_medicines.append({
+            "name": name,
+            "requests": req_count,
+            "available": available,
+            "status": status,
+            "trend": "up" if available < req_count else "down",
+        })
+
     return {
         "total_requests": total_requests,
         "total_donations": total_donations,
-        "success_rate": 84,
-        "near_expiry_count": 15,
-        "top_medicines": top_medicines
+        "success_rate": success_rate,
+        "near_expiry_count": near_expiry_count,
+        "top_medicines": top_medicines,
     }
 
 @router.get("/emergency-board")

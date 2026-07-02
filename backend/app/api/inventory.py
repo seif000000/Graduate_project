@@ -110,15 +110,27 @@ def update_inventory_item(
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):
-    """Update an inventory item."""
+    """Update an inventory item (and its linked medicine name/generic if provided)."""
     db_item = session.get(Donation, item_id)
     if not db_item or db_item.donor_id != current_user.id:
         raise HTTPException(status_code=404, detail="الصنف غير موجود في مخزونك")
-    
+
+    # Handle medicine name / generic name updates on the linked Medicine row
+    new_name = item_update.pop("medicine_name", None)
+    new_generic = item_update.pop("generic_name", None)
+    if new_name or new_generic:
+        medicine = session.get(Medicine, db_item.medicine_id)
+        if medicine:
+            if new_name:
+                medicine.name = new_name
+            if new_generic is not None:
+                medicine.generic_name = new_generic
+            session.add(medicine)
+
     for key, value in item_update.items():
         if hasattr(db_item, key):
             setattr(db_item, key, value)
-    
+
     session.add(db_item)
     session.commit()
     session.refresh(db_item)

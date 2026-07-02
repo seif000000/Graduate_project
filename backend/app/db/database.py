@@ -6,7 +6,9 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# pyrefly: ignore [missing-attribute]
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+# pyrefly: ignore [no-matching-overload]
 engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args)
 
 def init_db():

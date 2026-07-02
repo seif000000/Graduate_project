@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from typing import List, Optional
 from app.db.database import get_session
 from app.models.user import User, UserRead, UserUpdate
@@ -109,11 +109,23 @@ def get_pharmacy_stats(
     delivered = sum(1 for d in donations if d.status == "delivered")
     available = sum(1 for d in donations if d.status == "available")
 
+    # Aggregate the pharmacy's own rating from feedback it received
+    from app.models.feedback import Feedback
+    rating_row = session.exec(
+        select(func.avg(Feedback.rating), func.count(Feedback.id))
+        .where(Feedback.target_id == current_user.id)
+    ).first()
+    avg_rating = round(float(rating_row[0]), 1) if rating_row and rating_row[0] is not None else None
+    # pyrefly: ignore [unnecessary-type-conversion]
+    rating_count = int(rating_row[1]) if rating_row and rating_row[1] else 0
+
     return {
         "total_dispensed": delivered,
         "total_available": available,
         "total_items": total,
         "completion_rate": round((delivered / total * 100) if total else 0, 1),
+        "rating": avg_rating,
+        "rating_count": rating_count,
     }
 
 # ─── Admin: Static Routes (MUST come before /{user_id}) ──────────────────────
@@ -147,6 +159,43 @@ def get_all_reports(
     """Fetch all user reports for admin review."""
     statement = select(UserReport).order_by(UserReport.created_at.desc())
     return session.exec(statement).all()
+
+@router.patch("/admin/reports/{report_id}")
+def admin_update_report_status(
+    report_id: int,
+    payload: dict,
+    admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session),
+):
+    """Admin: update a report's status (e.g. resolved / investigating)."""
+    report = session.get(UserReport, report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="البلاغ غير موجود")
+    new_status = payload.get("status", "resolved")
+    if new_status not in ("open", "investigating", "resolved"):
+        raise HTTPException(status_code=400, detail="حالة غير صالحة")
+    report.status = new_status
+    session.add(report)
+    session.commit()
+    session.refresh(report)
+    return report
+
+@router.post("/admin/users/{user_id}/ban")
+def admin_ban_user(
+    user_id: int,
+    admin: User = Depends(get_current_admin),
+    session: Session = Depends(get_session),
+):
+    """Admin: deactivate (ban) a user so they can no longer log in / act."""
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="المستخدم غير موجود")
+    if user.role == "admin":
+        raise HTTPException(status_code=400, detail="لا يمكن حظر مدير")
+    user.is_active = False
+    session.add(user)
+    session.commit()
+    return {"message": "تم حظر المستخدم (تعطيل الحساب)"}
 
 @router.get("/admin/feedbacks")
 def admin_get_feedbacks(
