@@ -1,9 +1,12 @@
 // AI Service — tries backend first, falls back to direct Gemini API if backend fails
 import { askAI, identifyMedicine } from '../api';
 
-const GEMINI_KEY = 'AIzaSyBinPjU4F800R_azFDf2nZBa5e6lComOV4';
+// Read the key from the environment (Vite exposes VITE_* vars to the browser).
+// Set VITE_GEMINI_KEY in a root .env file — never hardcode the key (it leaks in the bundle).
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || '';
+const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash';
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const VISION_FIELDS = ['name', 'generic_name', 'strength', 'form', 'manufacturer', 'expiry_date', 'description'];
 
@@ -24,6 +27,7 @@ const SYSTEM_INSTRUCTION =
   "تذكر دائماً في نهاية إجابتك أن هذه النصائح إرشادية فقط ولا تغني عن استشارة الطبيب المعالج.";
 
 async function askGeminDirect(message) {
+  if (!GEMINI_KEY) throw new Error('VITE_GEMINI_KEY is not set');
   const payload = {
     contents: [{ parts: [{ text: `${SYSTEM_INSTRUCTION}\n\nسؤال المستخدم: ${message}` }] }],
     generationConfig: { temperature: 0.7, topK: 40, topP: 0.95, maxOutputTokens: 1024 },
@@ -53,6 +57,7 @@ function fileToBase64(file) {
 }
 
 async function identifyMedicineDirect(base64, mimeType) {
+  if (!GEMINI_KEY) throw new Error('VITE_GEMINI_KEY is not set');
   const payload = {
     contents: [
       {

@@ -92,7 +92,7 @@ def _parse_vision_json(text: str) -> dict:
 async def _vision_gemini(
     client: httpx.AsyncClient, image_b64: str, mime_type: str, api_key: str
 ) -> dict:
-    model = os.getenv("GEMINI_VISION_MODEL", "gemini-2.0-flash")
+    model = os.getenv("GEMINI_VISION_MODEL", "gemini-2.5-flash")
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent"
