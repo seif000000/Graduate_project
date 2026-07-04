@@ -41,8 +41,9 @@ VISION_INSTRUCTION = (
     "manufacturer = الشركة المصنّعة إن ظهرت. "
     "expiry_date = تاريخ انتهاء الصلاحية بصيغة YYYY-MM إن وُجد. "
     "description = وصف موجز جداً للمنتج ودواعي استعماله (سطر واحد). "
+    "confidence = درجة ثقتك في صحّة التعرّف على اسم الدواء كرقم صحيح من 0 إلى 100. "
     "إذا لم تجد قيمة لأي حقل فاجعلها null. "
-    "إذا لم تكن الصورة لعلبة دواء أو تعذّرت القراءة، اجعل جميع الحقول null. "
+    "إذا لم تكن الصورة لعلبة دواء أو تعذّرت القراءة، اجعل جميع الحقول null و confidence = 0. "
     "أعد النتيجة بصيغة JSON فقط دون أي نص إضافي."
 )
 
@@ -59,7 +60,10 @@ VISION_FIELDS = (
 # Gemini uses an OpenAPI-ish schema where nullability is `nullable: true`
 VISION_SCHEMA = {
     "type": "object",
-    "properties": {f: {"type": "string", "nullable": True} for f in VISION_FIELDS},
+    "properties": {
+        **{f: {"type": "string", "nullable": True} for f in VISION_FIELDS},
+        "confidence": {"type": "integer"},
+    },
     "required": list(VISION_FIELDS),
 }
 
@@ -71,6 +75,15 @@ def _clean_value(v):
     if not v or v.upper() in ("UNKNOWN", "NULL", "N/A", "NONE"):
         return None
     return v
+
+
+def _parse_confidence(v):
+    """Coerce a model-reported confidence to an int in [0, 100]; default 0."""
+    try:
+        n = round(float(str(v).strip().rstrip("%")))
+    except (TypeError, ValueError):
+        return 0
+    return max(0, min(100, n))
 
 
 def _parse_vision_json(text: str) -> dict:
@@ -86,7 +99,9 @@ def _parse_vision_json(text: str) -> dict:
     if start != -1 and end != -1 and end > start:
         text = text[start : end + 1]
     parsed = json.loads(text)
-    return {f: _clean_value(parsed.get(f)) for f in VISION_FIELDS}
+    result: dict = {f: _clean_value(parsed.get(f)) for f in VISION_FIELDS}
+    result["confidence"] = _parse_confidence(parsed.get("confidence"))
+    return result
 
 
 async def _vision_gemini(
@@ -367,6 +382,7 @@ async def identify_medicine(payload: MedicineImage):
                 if not result.get("name"):
                     return {
                         **{f: None for f in VISION_FIELDS},
+                        "confidence": 0,
                         "provider": name,
                         "message": "لم نتمكن من التعرف على اسم الدواء في الصورة",
                     }

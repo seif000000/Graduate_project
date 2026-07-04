@@ -15,8 +15,8 @@ const VISION_INSTRUCTION =
   "افحص صورة علبة الدواء بدقة واستخرج الحقول التالية بصيغة JSON: " +
   "name (الاسم التجاري)، generic_name (الاسم العلمي/المادة الفعالة)، strength (التركيز مثل 500mg)، " +
   "form (الشكل الدوائي)، manufacturer (الشركة المصنعة)، expiry_date (تاريخ الانتهاء YYYY-MM)، " +
-  "description (وصف موجز في سطر واحد). " +
-  "اجعل قيمة أي حقل غير موجود null. إذا لم تكن الصورة لعلبة دواء فاجعل كل الحقول null. " +
+  "description (وصف موجز في سطر واحد)، confidence (درجة ثقتك في التعرّف على الاسم كرقم صحيح من 0 إلى 100). " +
+  "اجعل قيمة أي حقل غير موجود null. إذا لم تكن الصورة لعلبة دواء فاجعل كل الحقول null و confidence = 0. " +
   "أعد JSON فقط دون أي نص إضافي.";
 
 const SYSTEM_INSTRUCTION =
@@ -92,7 +92,10 @@ async function identifyMedicineDirect(base64, mimeType) {
     if (!s || ['UNKNOWN', 'NULL', 'N/A', 'NONE'].includes(s.toUpperCase())) return null;
     return s;
   };
-  return Object.fromEntries(VISION_FIELDS.map((f) => [f, clean(parsed[f])]));
+  const out = Object.fromEntries(VISION_FIELDS.map((f) => [f, clean(parsed[f])]));
+  const conf = Math.round(Number(String(parsed.confidence ?? '').replace('%', '')) || 0);
+  out.confidence = Math.max(0, Math.min(100, conf));
+  return out;
 }
 
 /**

@@ -10,17 +10,20 @@ import {
   Calendar, 
   Package, 
   Tag, 
-  MapPin, 
+  MapPin,
   ShieldCheck,
   Stethoscope,
   Users,
-  PlusCircle
+  PlusCircle,
+  ScanLine
 } from 'lucide-react';
 import { donateMedicine, getApiError } from '../api';
-import { identifyMedicineFromImage } from '../services/gemini';
 import toast from 'react-hot-toast';
 import { getCurrentLocation } from '../utils/geolocation';
 import { useLang } from '../context/LanguageContext';
+import MedicineScanner from '../components/MedicineScanner';
+import BarcodeScanner from '../components/BarcodeScanner';
+import LocationPickerMap from '../components/LocationPickerMap';
 
 const Donate = () => {
   const { t } = useLang();
@@ -37,6 +40,8 @@ const Donate = () => {
     longitude: null,
     is_near_expiry: false,
     batch_info: '',
+    manufacturer: '',
+    barcode: '',
     price: 'مجاني'
   });
 
@@ -61,49 +66,28 @@ const Donate = () => {
     }).catch(e => console.warn("Location not provided"));
   }, []);
 
-  const [isScanning, setIsScanning] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState(null); // 'pharmacy' | 'direct'
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannerTab, setScannerTab] = useState('camera');
+  const [barcodeOpen, setBarcodeOpen] = useState(false);
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    // Allow re-selecting the same file later
-    e.target.value = '';
-    if (!file) return;
+  const openScanner = (tab) => {
+    setScannerTab(tab);
+    setScannerOpen(true);
+  };
 
-    setIsScanning(true);
-    toast.loading(t('donate.analyzingImage'), { id: 'ocr-scan' });
-
-    try {
-      const result = await identifyMedicineFromImage(file);
-
-      if (!result || !result.name) {
-        toast.error(
-          t('donate.ocrReadError'),
-          { id: 'ocr-scan' }
-        );
-        // Still advance so the user can fill the details manually
-        nextStep();
-        return;
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        medicine_name: result.name,
-        generic_name: result.generic_name || prev.generic_name,
-        expiry_date: result.expiry_date || prev.expiry_date,
-      }));
-      toast.success(t('donate.ocrRecognized').replace('{name}', result.name), { id: 'ocr-scan' });
-      nextStep();
-    } catch (error) {
-      console.error('OCR error:', error);
-      toast.error(
-        t('donate.ocrError'),
-        { id: 'ocr-scan' }
-      );
-      nextStep();
-    } finally {
-      setIsScanning(false);
-    }
+  // The MedicineScanner has already run the recognition pipeline and let the
+  // user confirm/edit — here we just apply the confirmed result and advance.
+  const handleScanResult = (r) => {
+    setFormData(prev => ({
+      ...prev,
+      medicine_name: r.name || prev.medicine_name,
+      generic_name: r.generic_name || prev.generic_name,
+      expiry_date: r.expiry_date || prev.expiry_date,
+      manufacturer: r.manufacturer || prev.manufacturer,
+    }));
+    if (r.name) toast.success(t('donate.ocrRecognized').replace('{name}', r.name));
+    setStep(2);
   };
 
   const nextStep = () => setStep(s => Math.min(s + 1, totalSteps));
@@ -183,20 +167,18 @@ const Donate = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
-                 <label className={`aspect-square rounded-3xl border-4 border-dashed border-primary-100 bg-primary-50/30 flex flex-col items-center justify-center gap-4 group transition-all relative overflow-hidden ${isScanning ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:bg-primary-50'}`}>
-                    <input type="file" accept="image/*" capture="environment" onChange={handleImageUpload} disabled={isScanning} className="hidden" />
+                 <button type="button" onClick={() => openScanner('camera')} className="aspect-square rounded-3xl border-4 border-dashed border-primary-100 bg-primary-50/30 flex flex-col items-center justify-center gap-4 group transition-all cursor-pointer hover:bg-primary-50">
                     <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-primary-600 shadow-xl shadow-primary-200/50 group-hover:scale-110 transition-transform">
-                       {isScanning ? <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" /> : <Camera size={32} />}
+                       <Camera size={32} />
                     </div>
-                    <span className="font-black text-primary-700">{isScanning ? t('donate.analyzing') : t('donate.openCamera')}</span>
-                 </label>
-                 <label className={`aspect-square rounded-3xl border-4 border-dashed border-slate-100 bg-slate-50/30 flex flex-col items-center justify-center gap-4 group transition-all font-bold text-slate-400 relative overflow-hidden ${isScanning ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:bg-slate-50'}`}>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} disabled={isScanning} className="hidden" />
+                    <span className="font-black text-primary-700">{t('donate.openCamera')}</span>
+                 </button>
+                 <button type="button" onClick={() => openScanner('upload')} className="aspect-square rounded-3xl border-4 border-dashed border-slate-100 bg-slate-50/30 flex flex-col items-center justify-center gap-4 group transition-all font-bold text-slate-400 cursor-pointer hover:bg-slate-50">
                     <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-xl shadow-slate-100 transition-transform group-hover:scale-110">
-                       {isScanning ? <div className="w-8 h-8 border-4 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <Upload size={32} />}
+                       <Upload size={32} />
                     </div>
-                    <span>{isScanning ? t('donate.analyzing') : t('donate.uploadFromDevice')}</span>
-                 </label>
+                    <span>{t('donate.uploadFromDevice')}</span>
+                 </button>
               </div>
 
               <div className="bg-amber-50 p-6 rounded-2xl flex gap-4 text-start border border-amber-100">
@@ -242,17 +224,31 @@ const Donate = () => {
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ps-2">{t('donate.manufacturer')}</label>
                     <input
                       type="text"
+                      value={formData.manufacturer}
+                      onChange={(e) => setFormData({...formData, manufacturer: e.target.value})}
                       placeholder={t('donate.manufacturerPlaceholder')}
-                      className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl focus:border-primary-500 transition-all font-bold text-slate-800" 
+                      className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl focus:border-primary-500 transition-all font-bold text-slate-800"
                     />
                  </div>
                  <div className="space-y-2">
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ps-2">{t('donate.barcode')}</label>
-                    <input
-                       type="text"
-                       placeholder={t('donate.barcodePlaceholder')}
-                       className="w-full bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl focus:border-primary-500 transition-all font-bold text-slate-800" 
-                    />
+                    <div className="flex gap-2">
+                       <input
+                          type="text"
+                          value={formData.barcode}
+                          onChange={(e) => setFormData({...formData, barcode: e.target.value})}
+                          placeholder={t('donate.barcodePlaceholder')}
+                          className="flex-grow bg-slate-50 border border-slate-200 h-14 px-6 rounded-2xl focus:border-primary-500 transition-all font-bold text-slate-800"
+                       />
+                       <button
+                          type="button"
+                          onClick={() => setBarcodeOpen(true)}
+                          title={t('barcode.title')}
+                          className="shrink-0 w-14 h-14 rounded-2xl bg-primary-600 text-white flex items-center justify-center hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/30"
+                       >
+                          <ScanLine size={22} />
+                       </button>
+                    </div>
                  </div>
               </div>
 
@@ -391,6 +387,15 @@ const Donate = () => {
                      <p className="text-xs text-slate-400 font-medium leading-relaxed">{t('donate.directDeliveryDesc')}</p>
                   </button>
               </div>
+
+              {deliveryMethod === 'direct' && (
+                <div className="pt-2">
+                  <LocationPickerMap
+                    defaultLocation={formData.latitude && formData.longitude ? { lat: formData.latitude, lng: formData.longitude } : null}
+                    onLocationSelect={(pos) => setFormData(prev => ({ ...prev, latitude: pos.lat, longitude: pos.lng }))}
+                  />
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -467,6 +472,22 @@ const Donate = () => {
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">{t('donate.medicalSupervision')}</span>
          </div>
       </footer>
+
+      {/* Camera + upload medicine recognition */}
+      <MedicineScanner
+        open={scannerOpen}
+        initialTab={scannerTab}
+        onClose={() => setScannerOpen(false)}
+        onConfirm={handleScanResult}
+      />
+
+      {/* Barcode scanner for the barcode field */}
+      {barcodeOpen && (
+        <BarcodeScanner
+          onScan={(code) => { setFormData(prev => ({ ...prev, barcode: code })); setBarcodeOpen(false); toast.success(code); }}
+          onClose={() => setBarcodeOpen(false)}
+        />
+      )}
     </div>
   );
 };

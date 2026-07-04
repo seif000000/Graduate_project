@@ -188,6 +188,25 @@ export const core = {
     'barcode.title': 'ماسح الباركود',
     'barcode.instruction': 'ضع باركود علبة الدواء داخل الإطار ليتم التعرف عليه تلقائياً.',
 
+    // Medicine scanner (camera + upload + AI recognition)
+    'scanner.title': 'التعرّف على الدواء',
+    'scanner.tabCamera': 'الكاميرا',
+    'scanner.tabUpload': 'رفع صورة',
+    'scanner.capture': 'التقاط الصورة',
+    'scanner.retake': 'إعادة',
+    'scanner.analyzing': 'جارٍ تحليل الصورة...',
+    'scanner.cameraDenied': 'تم رفض إذن الكاميرا. فعّله من إعدادات المتصفح أو استخدم رفع صورة.',
+    'scanner.cameraError': 'تعذّر تشغيل الكاميرا. جرّب رفع صورة بدلاً من ذلك.',
+    'scanner.uploadPrompt': 'اختر صورة واضحة لعلبة الدواء',
+    'scanner.chooseFile': 'اختيار صورة',
+    'scanner.detected': 'تم التعرّف على',
+    'scanner.confidence': 'درجة الثقة',
+    'scanner.notRecognized': 'لم نتعرّف على الدواء بدقة — يمكنك إدخال الاسم يدوياً.',
+    'scanner.nameLabel': 'اسم الدواء',
+    'scanner.genericLabel': 'الاسم العلمي',
+    'scanner.confirm': 'تأكيد',
+    'scanner.confirmSearch': 'تأكيد والبحث',
+
     // Protected route
     'protected.verifying': 'جاري التحقق من صلاحياتك...',
 
@@ -376,6 +395,25 @@ export const core = {
     // Barcode scanner
     'barcode.title': 'Barcode Scanner',
     'barcode.instruction': 'Place the medicine barcode inside the frame to scan it automatically.',
+
+    // Medicine scanner (camera + upload + AI recognition)
+    'scanner.title': 'Identify Medicine',
+    'scanner.tabCamera': 'Camera',
+    'scanner.tabUpload': 'Upload image',
+    'scanner.capture': 'Capture photo',
+    'scanner.retake': 'Retake',
+    'scanner.analyzing': 'Analyzing image...',
+    'scanner.cameraDenied': 'Camera permission denied. Enable it in your browser settings or upload an image.',
+    'scanner.cameraError': "Couldn't start the camera. Try uploading an image instead.",
+    'scanner.uploadPrompt': 'Choose a clear photo of the medicine box',
+    'scanner.chooseFile': 'Choose image',
+    'scanner.detected': 'Detected',
+    'scanner.confidence': 'Confidence',
+    'scanner.notRecognized': "Couldn't identify the medicine confidently — you can enter the name manually.",
+    'scanner.nameLabel': 'Medicine name',
+    'scanner.genericLabel': 'Generic name',
+    'scanner.confirm': 'Confirm',
+    'scanner.confirmSearch': 'Confirm & search',
 
     // Protected route
     'protected.verifying': 'Verifying your permissions...',

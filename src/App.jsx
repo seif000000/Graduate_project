@@ -41,6 +41,7 @@ import UsersManagement from './pages/UsersManagement';
 import MedicinesAnalytics from './pages/MedicinesAnalytics';
 import Reports from './pages/Reports';
 import TeamManagement from './pages/TeamManagement';
+import AdminSettings from './pages/AdminSettings';
 
 // Pharmacy Pages
 import PharmacyInventory from './pages/PharmacyInventory';
@@ -113,7 +114,7 @@ function App() {
           } />
           <Route path="/admin/settings" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <LayoutAdmin title="routes.settings"><Settings /></LayoutAdmin>
+              <LayoutAdmin title="routes.settings"><AdminSettings /></LayoutAdmin>
             </ProtectedRoute>
           } />
 

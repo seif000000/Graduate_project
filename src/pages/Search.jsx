@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search as SearchIcon, MapPin, Grid, List as ListIcon, SlidersHorizontal, Camera, X } from 'lucide-react';
 import MedicineCard from '../components/MedicineCard';
 import { RatingStars, VerifiedBadge } from '../components/RatingStars';
+import MedicineScanner from '../components/MedicineScanner';
 import { getInventory, sendInboxMessage, getApiError } from '../api';
-import { identifyMedicineFromImage } from '../services/gemini';
 import toast from 'react-hot-toast';
 import { getCurrentLocation, calculateDistance } from '../utils/geolocation';
 import { useLang } from '../context/LanguageContext';
@@ -29,32 +29,14 @@ const Search = () => {
   const [sendingRequest, setSendingRequest] = useState(false);
   const [currentUser] = useState(JSON.parse(localStorage.getItem('user') || 'null'));
 
-  // Photo-based search (take/upload a photo of the medicine box)
-  const [scanning, setScanning] = useState(false);
-  const photoInputRef = useRef(null);
+  // Photo-based search: camera or upload -> AI recognition -> confirm -> search.
+  const [scannerOpen, setScannerOpen] = useState(false);
 
-  const handlePhotoSearch = async (e) => {
-    const file = e.target.files[0];
-    e.target.value = ''; // allow re-selecting the same file
-    if (!file) return;
-
-    setScanning(true);
-    toast.loading(t('search.analyzing'), { id: 'photo-search' });
-    try {
-      const result = await identifyMedicineFromImage(file);
-      if (!result || !result.name) {
-        toast.error(t('search.photoReadError'), { id: 'photo-search' });
-        return;
-      }
-      toast.success(t('search.recognized').replace('{name}', result.name), { id: 'photo-search' });
-      setSearchTerm(result.name);
-      fetchResults(result.name);
-    } catch (error) {
-      console.error('Photo search error:', error);
-      toast.error(getApiError(error, t('search.photoAnalyzeError')), { id: 'photo-search' });
-    } finally {
-      setScanning(false);
-    }
+  const handleScanConfirm = (r) => {
+    if (!r?.name) return;
+    toast.success(t('search.recognized').replace('{name}', r.name));
+    setSearchTerm(r.name);
+    fetchResults(r.name);
   };
 
   const fetchResults = async (query = '') => {
@@ -182,24 +164,13 @@ const Search = () => {
               className="w-full h-16 ps-14 pe-24 bg-white border border-slate-100 rounded-[1.25rem] shadow-sm outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all font-bold text-slate-700"
             />
             <div className="absolute end-3 top-1/2 -translate-y-1/2 flex gap-2">
-               <input
-                 ref={photoInputRef}
-                 type="file"
-                 accept="image/*"
-                 capture="environment"
-                 onChange={handlePhotoSearch}
-                 className="hidden"
-               />
                <button
                  type="button"
-                 onClick={() => photoInputRef.current?.click()}
-                 disabled={scanning}
+                 onClick={() => setScannerOpen(true)}
                  title={t('search.photoTitle')}
-                 className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary-50 hover:text-primary-600 transition-all disabled:opacity-60 disabled:cursor-wait"
+                 className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary-50 hover:text-primary-600 transition-all"
                >
-                  {scanning
-                    ? <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-                    : <Camera size={18} />}
+                  <Camera size={18} />
                </button>
                <button onClick={() => fetchResults(searchTerm)} className="btn-primary h-10 px-5 text-sm">{t('search.searchBtn')}</button>
             </div>
@@ -412,6 +383,14 @@ const Search = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Camera / upload medicine recognition → search */}
+      <MedicineScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onConfirm={handleScanConfirm}
+        confirmLabel={t('scanner.confirmSearch')}
+      />
     </div>
   );
 };
