@@ -76,7 +76,44 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Toaster position="top-right" reverseOrder={true} />
+        <Toaster 
+          position="top-center" 
+          reverseOrder={false}
+          toastOptions={{
+            style: {
+              background: '#fff',
+              color: '#334155',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+              borderRadius: '1.5rem',
+              padding: '16px 24px',
+              fontSize: '14px',
+              fontWeight: '900',
+              fontFamily: 'inherit',
+            },
+            success: {
+              style: {
+                background: '#F0FDF4',
+                color: '#166534',
+                border: '1px solid #DCFCE7',
+              },
+              iconTheme: {
+                primary: '#22C55E',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              style: {
+                background: '#FEF2F2',
+                color: '#991B1B',
+                border: '1px solid #FEE2E2',
+              },
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: '#fff',
+              },
+            },
+          }} 
+        />
         <Routes>
           {/* Public — landing & auth (guests only) */}
           <Route path="/" element={
