@@ -3,6 +3,8 @@ import { Users, UserCheck, UserMinus, Search, Filter, MoreVertical, Shield, Buil
 import { getAllUsers, getAdminStats, deleteUser, adminVerifyUser, getApiError } from '../api';
 import { useLang } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ConfirmDialog';
+
 
 const UsersManagement = () => {
   const { t } = useLang();
@@ -12,6 +14,8 @@ const UsersManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // userId to delete
+
 
   const fetchUsers = async (role) => {
     setLoading(true);
@@ -58,7 +62,6 @@ const UsersManagement = () => {
   }, []);
 
   const handleDelete = async (userId) => {
-    if (!window.confirm(t('users.confirmDelete'))) return;
     setDeletingId(userId);
     try {
       await deleteUser(userId);
@@ -68,8 +71,10 @@ const UsersManagement = () => {
       toast.error(getApiError(e, t('users.deleteFailed')));
     } finally {
       setDeletingId(null);
+      setConfirmDelete(null);
     }
   };
+
 
   const handleVerify = async (userId, currentStatus) => {
     try {
@@ -238,7 +243,7 @@ const UsersManagement = () => {
                           <UserCheck size={15} />
                         </button>
                         <button
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => setConfirmDelete(user.id)}
                           disabled={deletingId === user.id}
                           className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50"
                           title={t('users.deleteAction')}
@@ -267,8 +272,16 @@ const UsersManagement = () => {
           </div>
         )}
       </div>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        variant="delete"
+        message={t('users.confirmDelete')}
+        onConfirm={() => handleDelete(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 };
 
 export default UsersManagement;
+

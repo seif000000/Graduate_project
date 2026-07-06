@@ -4,6 +4,8 @@ import { Building2, Package, Search, Plus, Filter, MoreVertical, Trash2, Edit, E
 import { getPharmacyInventory, deletePharmacyInventory, addPharmacyInventory, updatePharmacyInventory, getApiError } from '../api';
 import { useLang } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ConfirmDialog';
+
 
 const PharmacyInventory = () => {
   const { t } = useLang();
@@ -12,6 +14,8 @@ const PharmacyInventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // item ID
+
   const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'near' | 'good'
   const emptyMedicine = {
     medicine_name: '',
@@ -59,16 +63,16 @@ const PharmacyInventory = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    if (window.confirm(t('inventory.confirmDelete'))) {
-      try {
-        await deletePharmacyInventory(id);
-        toast.success(t('inventory.deleteSuccess'));
-        fetchInventory();
-      } catch (e) {
-        toast.error(t('inventory.deleteError'));
-      }
+    try {
+      await deletePharmacyInventory(id);
+      toast.success(t('inventory.deleteSuccess'));
+      setConfirmDelete(null);
+      fetchInventory();
+    } catch (e) {
+      toast.error(t('inventory.deleteError'));
     }
   };
+
 
   const handleSubmitMedicine = async (e) => {
     e.preventDefault();
@@ -218,7 +222,7 @@ const PharmacyInventory = () => {
                               <div className="flex items-center justify-center gap-2">
                                  <button onClick={() => openEditForm(item)} className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-primary-600 hover:border-primary-200 transition-all flex items-center justify-center shadow-sm"><Edit size={16} /></button>
                                  <button 
-                                   onClick={() => handleDelete(item.id)}
+                                   onClick={() => setConfirmDelete(item.id)}
                                    className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-red-600 hover:border-red-200 transition-all flex items-center justify-center shadow-sm"
                                  >
                                    <Trash2 size={16} />
@@ -318,8 +322,15 @@ const PharmacyInventory = () => {
                  </div>
               </form>
            </motion.div>
-        </div>
+         </div>
       )}
+      <ConfirmDialog
+        open={!!confirmDelete}
+        variant="delete"
+        message={t('inventory.confirmDelete')}
+        onConfirm={() => handleDelete(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 };

@@ -20,6 +20,27 @@ export const core = {
     'common.noResults': 'لا توجد نتائج',
     'common.currency': 'ج.م',
     'common.back': 'رجوع',
+    'common.confirm': 'تأكيد',
+    'common.confirmDelete': 'حذف',
+    'common.confirmBan': 'حظر',
+    'common.yes': 'نعم',
+    'common.no': 'لا',
+
+    // Confirm dialog
+    'confirm.deleteTitle': 'تأكيد الحذف',
+    'confirm.banTitle': 'تأكيد الحظر',
+    'confirm.genericTitle': 'تأكيد الإجراء',
+    'confirm.irreversible': 'هذا الإجراء لا يمكن التراجع عنه.',
+    'confirm.yes': 'نعم، تأكيد',
+    'confirm.no': 'إلغاء',
+
+    // API errors
+    'error.unexpected': 'حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى',
+
+    // Unauthorized page
+    'page403.title': '٤٠٣',
+    'page403.message': 'غير مصرح لك بالوصول لهذه الصفحة',
+    'page403.back': 'عودة للخلف',
 
     // Auth — login
     'auth.welcomeBack': 'مرحباً بعودتك',
@@ -236,6 +257,27 @@ export const core = {
     'common.noResults': 'No results',
     'common.currency': 'EGP',
     'common.back': 'Back',
+    'common.confirm': 'Confirm',
+    'common.confirmDelete': 'Delete',
+    'common.confirmBan': 'Ban',
+    'common.yes': 'Yes',
+    'common.no': 'No',
+
+    // Confirm dialog
+    'confirm.deleteTitle': 'Confirm Deletion',
+    'confirm.banTitle': 'Confirm Ban',
+    'confirm.genericTitle': 'Confirm Action',
+    'confirm.irreversible': 'This action cannot be undone.',
+    'confirm.yes': 'Yes, confirm',
+    'confirm.no': 'Cancel',
+
+    // API errors
+    'error.unexpected': 'An unexpected error occurred, please try again',
+
+    // Unauthorized page
+    'page403.title': '403',
+    'page403.message': 'You are not authorized to access this page',
+    'page403.back': 'Go back',
 
     'auth.welcomeBack': 'Welcome back',
     'auth.loginSubtitle': 'Sign in to continue on Musnad',

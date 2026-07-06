@@ -6,6 +6,8 @@ import { getCurrentLocation } from '../utils/geolocation';
 import { formatDate, formatDateTime } from '../utils/formatDate';
 import toast from 'react-hot-toast';
 import { useLang } from '../context/LanguageContext';
+import ConfirmDialog from '../components/ConfirmDialog';
+
 
 const MyRequests = () => {
   const { t } = useLang();
@@ -19,6 +21,8 @@ const MyRequests = () => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // request ID
+
 
   // New Request Form states
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -97,15 +101,15 @@ const MyRequests = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm(t('myRequests.deleteConfirm'))) {
-      try {
-        await deleteMyRequest(id);
-        setRequests(requests.filter(r => r.id !== id));
-      } catch (e) {
-        toast.error(getApiError(e, t('myRequests.deleteFail')));
-      }
+    try {
+      await deleteMyRequest(id);
+      setRequests(requests.filter(r => r.id !== id));
+      setConfirmDelete(null);
+    } catch (e) {
+      toast.error(getApiError(e, t('myRequests.deleteFail')));
     }
   };
+
 
   const handleFeedbackSubmit = async () => {
     if (!feedbackModal) return;
@@ -226,8 +230,8 @@ const MyRequests = () => {
                       <div className="flex gap-2">
                          <button onClick={() => setDetailsModal(req)} className="h-10 px-6 rounded-xl bg-slate-50 text-slate-500 font-bold text-xs hover:bg-slate-100 transition-all">{t('myRequests.details')}</button>
                          {req.status === 'pending' && (
-                            <button 
-                              onClick={() => handleDelete(req.id)}
+                            <button
+                              onClick={() => setConfirmDelete(req.id)}
                               className="h-10 px-4 rounded-xl bg-red-50 text-red-500 font-bold text-xs hover:bg-red-100 transition-all flex items-center justify-center"
                             >
                               <Trash2 size={14} />
@@ -506,6 +510,13 @@ const MyRequests = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        variant="delete"
+        message={t('myRequests.deleteConfirm')}
+        onConfirm={() => handleDelete(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 };

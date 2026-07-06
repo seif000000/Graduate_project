@@ -5,6 +5,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../api';
 import { useLang } from '../context/LanguageContext';
 import { LanguageToggle } from '../components/LanguageToggle';
+import toast from 'react-hot-toast';
+
 
 const Register = () => {
   const navigate = useNavigate();
@@ -25,10 +27,10 @@ const Register = () => {
     setLoading(true);
     try {
       await register({ ...formData, role });
-      alert(role === 'pharmacy' ? t('auth.registerSuccessPharmacy') : t('auth.registerSuccess'));
+      toast.success(role === 'pharmacy' ? t('auth.registerSuccessPharmacy') : t('auth.registerSuccess'));
       navigate('/login');
     } catch (error) {
-      alert(error.response?.data?.detail || t('auth.registerFailed'));
+      toast.error(error.response?.data?.detail || t('auth.registerFailed'));
     } finally {
       setLoading(false);
     }

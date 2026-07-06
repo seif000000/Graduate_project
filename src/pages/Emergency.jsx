@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import { getCurrentLocation } from '../utils/geolocation';
 import { formatDate, formatTime } from '../utils/formatDate';
 import { useLang } from '../context/LanguageContext';
+import ConfirmDialog from '../components/ConfirmDialog';
+
 
 const Emergency = () => {
   const { t } = useLang();
@@ -17,6 +19,7 @@ const Emergency = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [showSOSForm, setShowSOSForm] = useState(false);
   const [submittingSOS, setSubmittingSOS] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // request ID
   const [newSOS, setNewSOS] = useState({
     medicine_name: '',
     description: '',
@@ -93,16 +96,16 @@ const Emergency = () => {
   };
 
   const handleDelete = async (requestId) => {
-    if (window.confirm(t('emergency.deleteConfirm'))) {
-      try {
-        await adminDeleteRequest(requestId);
-        fetchSOS();
-      } catch (e) {
-        console.error(e);
-        toast.error(getApiError(e, t('emergency.deleteFail')));
-      }
+    try {
+      await adminDeleteRequest(requestId);
+      fetchSOS();
+      setConfirmDelete(null);
+    } catch (e) {
+      console.error(e);
+      toast.error(getApiError(e, t('emergency.deleteFail')));
     }
   };
+
 
   return (
     <div className="space-y-8 pb-12">
@@ -260,7 +263,7 @@ const Emergency = () => {
                      <div className="flex gap-4 shrink-0 items-center">
                         {currentUser.role === 'admin' && (
                            <button 
-                             onClick={() => handleDelete(req.id)}
+                             onClick={() => setConfirmDelete(req.id)}
                              className="w-12 h-12 rounded-2xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center cursor-pointer"
                            >
                               <Trash2 size={20} />
@@ -335,6 +338,13 @@ const Emergency = () => {
       <div className="text-center pt-8">
          <button onClick={fetchSOS} className="text-slate-400 font-bold hover:text-slate-600 transition-all text-xs uppercase tracking-[0.3em]">{t('emergency.refresh')}</button>
       </div>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        variant="delete"
+        message={t('emergency.deleteConfirm')}
+        onConfirm={() => handleDelete(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 };

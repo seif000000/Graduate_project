@@ -9,7 +9,7 @@ const api = axios.create({
   baseURL: BASE_URL,
 });
 
-export function getApiError(error, fallback = 'حدث خطأ غير متوقع') {
+export function getApiError(error, fallback = 'An unexpected error occurred') {
   const detail = error?.response?.data?.detail;
   if (typeof detail === 'string') return detail;
   if (Array.isArray(detail)) return detail.map((d) => d.msg || d).join(', ');

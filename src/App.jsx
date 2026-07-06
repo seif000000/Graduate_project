@@ -3,6 +3,8 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
+import { useLang } from './context/LanguageContext';
+
 
 // Layouts
 import LayoutAdmin from './components/layouts/LayoutAdmin';
@@ -51,6 +53,24 @@ import PricingControl from './pages/PricingControl';
 
 import ChatbotGate from './components/ChatbotGate';
 
+// Bilingual 403 page
+function UnauthorizedPage() {
+  const { t } = useLang();
+  return (
+    <div className="flex bg-[#FAF9F6] min-h-screen items-center justify-center">
+      <div className="text-center space-y-4">
+        <h1 className="text-6xl font-black text-red-500">{t('page403.title')}</h1>
+        <p className="text-xl font-bold text-slate-700">{t('page403.message')}</p>
+        <div className="pt-4">
+          <button onClick={() => window.history.back()} className="btn-primary px-8">
+            {t('page403.back')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Helper component to add titles dynamically
 function App() {
   return (
@@ -69,17 +89,7 @@ function App() {
             <GuestRoute><Register /></GuestRoute>
           } />
           <Route path="/about" element={<About />} />
-          <Route path="/unauthorized" element={
-            <div className="flex bg-[#FAF9F6] min-h-screen items-center justify-center">
-              <div className="text-center space-y-4">
-                <h1 className="text-6xl font-black text-red-500">403</h1>
-                <p className="text-xl font-bold">غير مصرح لك بالوصول لهذه الصفحة</p>
-                <div className="pt-4">
-                   <button onClick={() => window.history.back()} className="btn-primary px-8">عودة للخلف</button>
-                </div>
-              </div>
-            </div>
-          } />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Admin Routes */}
           <Route path="/admin" element={

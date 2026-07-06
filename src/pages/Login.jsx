@@ -7,6 +7,8 @@ import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { getHomeRoute } from '../utils/getHomeRoute';
+import toast from 'react-hot-toast';
+
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,7 +38,7 @@ const Login = () => {
       const defaultHome = getHomeRoute(response.data.role, response.data.is_verified);
       navigate(from && from !== '/' && from !== '/login' ? from : defaultHome, { replace: true });
     } catch (error) {
-      alert(error.response?.data?.detail || t('auth.loginFailed'));
+      toast.error(error.response?.data?.detail || t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }

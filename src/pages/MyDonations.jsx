@@ -4,6 +4,7 @@ import { Heart, Package, Clock, CheckCircle, XCircle, Trash2, MapPin, Search, X,
 import { getMyDonations, deleteDonation, getApiError } from '../api';
 import toast from 'react-hot-toast';
 import { useLang } from '../context/LanguageContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const MyDonations = () => {
   const { t } = useLang();
@@ -15,6 +16,8 @@ const MyDonations = () => {
   const [showMoneyModal, setShowMoneyModal] = useState(false);
   const [donationAmount, setDonationAmount] = useState('100');
   const [customAmount, setCustomAmount] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(null); // donation ID
+
   const [paymentMethod, setPaymentMethod] = useState('card'); // card, vodafone, fawry
   const [paymentPhone, setPaymentPhone] = useState('');
   const [cardNumber, setCardNumber] = useState('');
@@ -40,15 +43,15 @@ const MyDonations = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    if (window.confirm(t('myDonations.deleteConfirm'))) {
-      try {
-        await deleteDonation(id);
-        setDonations(donations.filter(d => d.id !== id));
-      } catch (e) {
-        toast.error(getApiError(e, t('myDonations.deleteFail')));
-      }
+    try {
+      await deleteDonation(id);
+      setDonations(donations.filter(d => d.id !== id));
+      setConfirmDelete(null);
+    } catch (e) {
+      toast.error(getApiError(e, t('myDonations.deleteFail')));
     }
   };
+
 
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
@@ -151,7 +154,7 @@ const MyDonations = () => {
                        </div>
                        <div className="flex gap-2">
                           <button 
-                            onClick={() => handleDelete(don.id)}
+                            onClick={() => setConfirmDelete(don.id)}
                             className="h-10 px-6 rounded-xl bg-red-50 text-red-500 font-black text-xs hover:bg-red-100 transition-all flex items-center gap-2"
                           >
                             <Trash2 size={14} />
@@ -418,6 +421,13 @@ const MyDonations = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        variant="delete"
+        message={t('myDonations.deleteConfirm')}
+        onConfirm={() => handleDelete(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 };

@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { getTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from '../api';
 import { useLang } from '../context/LanguageContext';
+import ConfirmDialog from '../components/ConfirmDialog';
+
 
 const EMPTY_FORM = {
   name: '',
@@ -154,6 +156,8 @@ export default function TeamManagement() {
   const [showAdd, setShowAdd] = useState(false);
   const [editId, setEditId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, name }
+
 
   const refresh = () => {
     setLoading(true);
@@ -193,16 +197,17 @@ export default function TeamManagement() {
     }
   };
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(t('team.confirmDelete').replace('{name}', name))) return;
+  const handleDelete = async (id) => {
     try {
       await deleteTeamMember(id);
       toast.success(t('team.deleteSuccess'));
+      setConfirmDelete(null);
       refresh();
     } catch {
       toast.error(t('team.deleteFailed'));
     }
   };
+
 
   return (
     <div className="space-y-6 pb-12">
@@ -298,7 +303,7 @@ export default function TeamManagement() {
                     <Pencil size={15} />
                   </button>
                   <button
-                    onClick={() => handleDelete(m.id, m.name)}
+                    onClick={() => setConfirmDelete({ id: m.id, name: m.name })}
                     className="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition-colors"
                   >
                     <Trash2 size={15} />
@@ -328,6 +333,13 @@ export default function TeamManagement() {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        open={!!confirmDelete}
+        variant="delete"
+        message={confirmDelete ? t('team.confirmDelete').replace('{name}', confirmDelete.name) : ''}
+        onConfirm={() => handleDelete(confirmDelete?.id)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 }

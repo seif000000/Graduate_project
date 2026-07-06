@@ -4,6 +4,7 @@ import { FileText, Plus, Upload, Download, Trash2, FileType, ShieldCheck } from 
 import toast from 'react-hot-toast';
 import { getMedicalReports, getMedicationLogs, uploadMedicalReport, deleteMedicalReport, getApiError } from '../api';
 import { useLang } from '../context/LanguageContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const MAX_INLINE_BYTES = 2 * 1024 * 1024; // store files up to 2MB inline for download
 
@@ -21,7 +22,9 @@ const MedicalHistory = () => {
   const [medicationLog, setMedicationLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // report object
   const fileInputRef = useRef(null);
+
 
   const fetchData = () => {
     Promise.all([
@@ -86,15 +89,16 @@ const MedicalHistory = () => {
   };
 
   const handleDelete = async (report) => {
-    if (!window.confirm(`${t('medicalHistory.deleteConfirmPre')}${report.name}${t('medicalHistory.deleteConfirmPost')}`)) return;
     try {
       await deleteMedicalReport(report.id);
       setReports(prev => prev.filter(r => r.id !== report.id));
       toast.success(t('medicalHistory.deleteSuccess'));
+      setConfirmDelete(null);
     } catch (err) {
       toast.error(getApiError(err, t('medicalHistory.deleteFail')));
     }
   };
+
 
   return (
     <div className="space-y-8 pb-12">
@@ -145,7 +149,7 @@ const MedicalHistory = () => {
                       </div>
                       <div className="flex gap-2">
                          <button onClick={() => handleDownload(report)} className="h-10 w-10 rounded-xl bg-white text-slate-400 hover:text-primary-600 shadow-sm flex items-center justify-center transition-all"><Download size={18} /></button>
-                         <button onClick={() => handleDelete(report)} className="h-10 w-10 rounded-xl bg-white text-slate-400 hover:text-red-500 shadow-sm flex items-center justify-center transition-all"><Trash2 size={18} /></button>
+                         <button onClick={() => setConfirmDelete(report)} className="h-10 w-10 rounded-xl bg-white text-slate-400 hover:text-red-500 shadow-sm flex items-center justify-center transition-all"><Trash2 size={18} /></button>
                       </div>
                    </motion.div>
                  ))}
@@ -197,6 +201,13 @@ const MedicalHistory = () => {
            </div>
         </section>
       </div>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        variant="delete"
+        message={confirmDelete ? `${t('medicalHistory.deleteConfirmPre')} ${confirmDelete.name} ${t('medicalHistory.deleteConfirmPost')}` : ''}
+        onConfirm={() => handleDelete(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 };

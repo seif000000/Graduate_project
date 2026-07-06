@@ -4,11 +4,15 @@ import { getAdminReports, resolveReport, banUser, getApiError } from '../api';
 import { formatDateTime } from '../utils/formatDate';
 import { useLang } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ConfirmDialog';
+
 
 const Reports = () => {
   const { t } = useLang();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmBan, setConfirmBan] = useState(null); // report to ban
+
 
   const fetchReports = async () => {
     setLoading(true);
@@ -36,14 +40,15 @@ const Reports = () => {
   };
 
   const handleBan = async (report) => {
-    if (!window.confirm(t('reports.confirmBan').replace('{id}', report.user_id))) return;
     try {
       await banUser(report.user_id);
       toast.success(t('reports.banSuccess'));
+      setConfirmBan(null);
     } catch (e) {
       toast.error(getApiError(e, t('reports.banFailed')));
     }
   };
+
 
   const getPriorityBadge = (p) => {
     switch(p) {
@@ -154,7 +159,7 @@ const Reports = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => handleBan(report)}
+                    onClick={() => setConfirmBan(report)}
                     className="h-10 px-5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-black text-xs hover:bg-red-500/20 transition-all flex items-center gap-2"
                   >
                     <UserX size={15} /> {t('reports.banUser')}
@@ -165,6 +170,13 @@ const Reports = () => {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        open={!!confirmBan}
+        variant="ban"
+        message={confirmBan ? t('reports.confirmBan').replace('{id}', confirmBan.user_id) : ''}
+        onConfirm={() => handleBan(confirmBan)}
+        onCancel={() => setConfirmBan(null)}
+      />
     </div>
   );
 };
