@@ -72,7 +72,6 @@ const Search = () => {
       
       setResults(meds);
     } catch (error) {
-      console.error("Error fetching inventory:", error);
       toast.error(getApiError(error, t('search.fetchError')));
     } finally {
       setLoading(false);
@@ -118,8 +117,7 @@ const Search = () => {
       // Navigate to inbox with query params to focus on this chat
       navigate(`/inbox?userId=${selectedMedicine.donor_id}&userName=${encodeURIComponent(selectedMedicine.donor_name || t('search.donorFallback'))}`);
     } catch (e) {
-      console.error(e);
-      toast.error(getApiError(e, t('search.requestSendError')));
+      toast.error(getApiError(e, t('search.bookError')));
     } finally {
       setSendingRequest(false);
     }

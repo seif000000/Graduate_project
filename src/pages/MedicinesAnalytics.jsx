@@ -15,8 +15,7 @@ const MedicinesAnalytics = () => {
       const res = await getMedicineAnalytics();
       setData(res.data);
     } catch (e) {
-      console.error(e);
-      toast.error(getApiError(e, t('analytics.loadFailed')));
+      toast.error(getApiError(e, t('analytics.fetchError')));
     } finally {
       setLoading(false);
     }

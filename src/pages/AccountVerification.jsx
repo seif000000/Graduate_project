@@ -36,8 +36,7 @@ const AccountVerification = () => {
        await verifyDocuments(data);
        setIsDone(true);
     } catch (e) {
-       console.error(e);
-       toast.error(t('accVerify.uploadError'));
+       toast.error(getApiError(e, t('verification.submitError')));
     } finally {
        setIsSubmitting(false);
     }

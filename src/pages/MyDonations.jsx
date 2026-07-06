@@ -31,7 +31,6 @@ const MyDonations = () => {
       const res = await getMyDonations();
       setDonations(res.data);
     } catch (e) {
-      console.error(e);
       toast.error(getApiError(e, t('myDonations.loadFail')));
     } finally {
       setLoading(false);

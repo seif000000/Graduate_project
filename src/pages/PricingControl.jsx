@@ -23,7 +23,6 @@ const PricingControl = () => {
       }));
       setMedicines(mapped);
     } catch (e) {
-      console.error(e);
       toast.error(getApiError(e, t('pricing.loadError')));
     } finally {
       setLoading(false);

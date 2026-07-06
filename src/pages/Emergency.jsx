@@ -35,8 +35,7 @@ const Emergency = () => {
       const response = await getEmergencyBoard();
       setSosRequests(response.data);
     } catch (error) {
-      console.error("Error fetching SOS board:", error);
-      toast.error(getApiError(error, t('emergency.loadFail')));
+      toast.error(getApiError(error, t('emergency.fetchError')));
     } finally {
       setLoading(false);
     }
@@ -76,7 +75,6 @@ const Emergency = () => {
       fetchSOS();
       toast.success(t('emergency.publishSuccess'));
     } catch (e) {
-      console.error(e);
       toast.error(getApiError(e, t('emergency.publishFail')));
     } finally {
       setSubmittingSOS(false);
@@ -90,7 +88,6 @@ const Emergency = () => {
       setResponseMsg({ ...responseMsg, [requestId]: '' });
       fetchSOS(); // Refresh to see new response
     } catch (e) { 
-      console.error(e);
       toast.error(getApiError(e, t('emergency.replyFail')));
     }
   };
@@ -101,7 +98,6 @@ const Emergency = () => {
       fetchSOS();
       setConfirmDelete(null);
     } catch (e) {
-      console.error(e);
       toast.error(getApiError(e, t('emergency.deleteFail')));
     }
   };

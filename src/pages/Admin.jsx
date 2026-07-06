@@ -24,8 +24,7 @@ const Admin = () => {
       setUnverifiedPharmacies(pharmaciesRes.data);
       setStats(statsRes.data);
     } catch (e) {
-      console.error(e);
-      toast.error(t('admin.loadFailed'));
+      toast.error(getApiError(e, t('admin.fetchError')));
     } finally {
       setLoading(false);
     }
@@ -41,8 +40,7 @@ const Admin = () => {
       setUnverifiedPharmacies(prev => prev.filter(p => p.id !== userId));
       toast.success(t('admin.verifySuccess'));
     } catch (e) {
-      console.error(e);
-      toast.error(t('admin.verifyFailed'));
+      toast.error(getApiError(e, t('admin.verifyError')));
     }
   };
 

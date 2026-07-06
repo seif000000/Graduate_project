@@ -22,7 +22,7 @@ const BarcodeScanner = ({ onScan, onClose }) => {
     });
 
     return () => {
-      scanner.clear().catch(err => console.error("Failed to clear scanner", err));
+      scanner.clear().catch(err => toast.error(t('scanner.clearError')));
     };
   }, [onScan]);
 

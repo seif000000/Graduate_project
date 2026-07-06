@@ -32,11 +32,8 @@ const Chatbot = () => {
       const text = await askGemini(input);
       setMessages(prev => [...prev, { role: 'bot', content: text }]);
     } catch (error) {
-      console.error('Gemini Error:', error);
-      setMessages(prev => [...prev, {
-        role: 'bot',
-        content: t('chatbot.error')
-      }]);
+      toast.error(getApiError(error, t('chatbot.fetchError')));
+      setMessages(prev => [...prev, { role: 'ai', content: t('chatbot.error') }]);
     } finally {
       setIsTyping(false);
     }

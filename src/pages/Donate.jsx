@@ -99,7 +99,6 @@ const Donate = () => {
       await donateMedicine(formData);
       setStep(5); // Success state
     } catch (error) {
-      console.error("Donation error:", error);
       toast.error(getApiError(error, t('donate.submitError')));
     } finally {
       setIsSubmitting(false);

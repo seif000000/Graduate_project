@@ -19,7 +19,7 @@ const Dashboard = () => {
       setDashboardData(res.data);
     }).catch(err => {
       console.error(err);
-      toast.error(getApiError(err, t('dashboard.loadError')));
+      toast.error(getApiError(err, t('dashboard.fetchError')));
     }).finally(() => {
       setLoading(false);
     });

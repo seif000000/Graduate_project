@@ -53,7 +53,7 @@ const HealthAI = () => {
         time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
       }]);
     } catch (error) {
-      console.error('Gemini Error:', error);
+      toast.error(getApiError(error, t('healthAI.fetchError')));
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'ai',

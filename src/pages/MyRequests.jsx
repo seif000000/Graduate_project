@@ -81,7 +81,6 @@ const MyRequests = () => {
       });
       fetchRequests();
     } catch (error) {
-      console.error(error);
       toast.error(getApiError(error, t('myRequests.createFail')));
     } finally {
       setSubmittingRequest(false);
@@ -93,8 +92,7 @@ const MyRequests = () => {
       const res = await getMyRequests();
       setRequests(res.data);
     } catch (e) {
-      console.error(e);
-      toast.error(getApiError(e, t('myRequests.loadFail')));
+      toast.error(getApiError(e, t('myRequests.statusFail')));
     } finally {
       setLoading(false);
     }

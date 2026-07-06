@@ -32,8 +32,7 @@ const Community = () => {
         const res = await getAllRequests();
         setRequests(res.data);
       } catch (e) {
-        console.error(e);
-        toast.error(getApiError(e, t('community.loadFail')));
+        toast.error(getApiError(e, t('community.fetchError')));
       } finally {
         setLoading(false);
       }

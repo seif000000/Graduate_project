@@ -34,8 +34,7 @@ const MyVouchers = () => {
         setVouchers(res.data);
       })
       .catch(err => {
-        console.error("Error fetching vouchers:", err);
-        toast.error(t('myVouchers.loadFail'));
+        toast.error(getApiError(err, t('vouchers.fetchError')));
       })
       .finally(() => {
         setLoading(false);

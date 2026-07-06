@@ -48,8 +48,7 @@ const Inbox = () => {
         setActiveChat(chatList[0].id);
       }
     }).catch(err => {
-      console.error(err);
-      toast.error(getApiError(err, t('inbox.loadChatsFail')));
+      toast.error(getApiError(err, t('inbox.loadFail')));
     }).finally(() => {
       setLoading(false);
     });
@@ -61,7 +60,6 @@ const Inbox = () => {
       getInboxMessages(activeChat).then(res => {
         setMessages(res.data);
       }).catch(err => {
-        console.error(err);
         toast.error(getApiError(err, t('inbox.loadMessagesFail')));
       });
     }
@@ -75,7 +73,6 @@ const Inbox = () => {
        setMessages(prev => [...prev, res.data]);
        setMessage('');
      } catch (err) {
-       console.error(err);
        toast.error(getApiError(err, t('inbox.sendFail')));
      }
   };

@@ -44,8 +44,7 @@ const NearExpiry = () => {
         const response = await getNearExpiry();
         setMedicines(response.data);
       } catch (error) {
-        console.error("Error fetching near expiry medicines:", error);
-        toast.error(getApiError(error, t('nearExpiry.loadError')));
+        toast.error(getApiError(error, t('nearExpiry.fetchError')));
       } finally {
         setLoading(false);
       }

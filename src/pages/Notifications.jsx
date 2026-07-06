@@ -16,8 +16,7 @@ const Notifications = () => {
       const res = await getMyNotifications();
       setNotifications(res.data);
     } catch (e) {
-      console.error(e);
-      toast.error(getApiError(e, t('notifications.loadFail')));
+      toast.error(getApiError(e, t('notifications.loadError')));
     } finally {
       setLoading(false);
     }

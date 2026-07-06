@@ -34,8 +34,7 @@ const MedicalHistory = () => {
       setReports(reportsRes.data);
       setMedicationLog(logsRes.data);
     }).catch(err => {
-      console.error(err);
-      toast.error(t('medicalHistory.loadFail'));
+      toast.error(getApiError(err, t('medicalHistory.loadFail')));
     }).finally(() => {
       setLoading(false);
     });
@@ -68,7 +67,6 @@ const MedicalHistory = () => {
       toast.success(t('medicalHistory.uploadSuccess'), { id: 'upload-report' });
       fetchData();
     } catch (err) {
-      console.error(err);
       toast.error(getApiError(err, t('medicalHistory.uploadFail')), { id: 'upload-report' });
     } finally {
       setUploading(false);

@@ -125,7 +125,6 @@ const Map = () => {
 
         setMarkers([...meds, ...sos]);
       } catch (e) {
-        console.error("Map data fetch error:", e);
         toast.error(getApiError(e, t('map.fetchError')));
       }
     };

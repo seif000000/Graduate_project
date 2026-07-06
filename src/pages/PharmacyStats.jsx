@@ -38,8 +38,7 @@ const PharmacyStats = () => {
         const res = await getPharmacyStats();
         setData(res.data);
       } catch (e) {
-        console.error(e);
-        toast.error(getApiError(e, t('stats.loadError')));
+        toast.error(getApiError(e, t('analytics.fetchError')));
       } finally {
         setLoading(false);
       }

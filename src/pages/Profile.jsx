@@ -19,7 +19,6 @@ const Profile = () => {
       setFormData(res.data);
       localStorage.setItem('user', JSON.stringify(res.data));
     } catch (e) {
-      console.error(e);
       toast.error(getApiError(e, t('profile.loadError')));
     } finally {
       setLoading(false);
@@ -37,17 +36,8 @@ const Profile = () => {
       setUser(res.data);
       setIsEditing(false);
       localStorage.setItem('user', JSON.stringify(res.data));
-      toast.success(t('profile.updateSuccess'), {
-        style: {
-          borderRadius: '15px',
-          background: '#0f172a',
-          color: '#fff',
-          fontFamily: 'Cairo, sans-serif',
-          fontWeight: 'bold'
-        },
-      });
+      toast.success(t('profile.updateSuccess'));
     } catch (e) {
-      console.error(e);
       toast.error(getApiError(e, t('profile.updateError')));
     }
   };

@@ -44,7 +44,6 @@ const UsersManagement = () => {
         );
       }
     } catch (e) {
-      console.error(e);
       toast.error(getApiError(e, t('users.loadFailed')));
     } finally {
       setLoading(false);
@@ -58,7 +57,7 @@ const UsersManagement = () => {
   useEffect(() => {
     getAdminStats()
       .then((res) => setPlatformStats(res.data))
-      .catch((e) => console.error('Failed to load admin stats:', e));
+      .catch((e) => toast.error(getApiError(e, t('users.loadFailed'))));
   }, []);
 
   const handleDelete = async (userId) => {

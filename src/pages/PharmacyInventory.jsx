@@ -51,8 +51,7 @@ const PharmacyInventory = () => {
       const response = await getPharmacyInventory();
       setInventory(response.data);
     } catch (error) {
-      console.error("Error fetching inventory:", error);
-      toast.error(getApiError(error, t('inventory.loadError')));
+      toast.error(getApiError(error, t('inventory.fetchError')));
     } finally {
       setLoading(false);
     }
