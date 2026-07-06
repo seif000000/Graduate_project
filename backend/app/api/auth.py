@@ -61,11 +61,23 @@ def verify_pharmacy(
     current_admin: User = Depends(get_current_admin), 
     session: Session = Depends(get_session)
 ):
+    from app.models.notification import create_notification
+
     user = session.get(User, user_id)
     if not user or user.role != "pharmacy":
         raise HTTPException(status_code=404, detail="الصيدلية غير موجودة")
     user.is_verified = True
     session.add(user)
+
+    # Let the pharmacy know their account was verified.
+    create_notification(
+        session,
+        user.id,
+        "تم توثيق حسابك ✅",
+        "تهانينا! تم توثيق صيدليتك ويمكنك الآن الوصول إلى جميع الميزات.",
+        type="badge",
+    )
+
     session.commit()
     return {"message": "تم توثيق الصيدلية بنجاح"}
 

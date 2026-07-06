@@ -148,12 +148,26 @@ def respond_to_request(
     session: Session = Depends(get_session)
 ):
     from app.models.request import RequestResponse
+    from app.models.notification import create_notification
+
+    req = session.get(MedicineRequest, request_id)
     response = RequestResponse(
         request_id=request_id,
         responder_id=current_user.id,
         message=message
     )
     session.add(response)
+
+    # Notify the owner of the request / SOS that someone responded.
+    if req and req.requester_id != current_user.id:
+        create_notification(
+            session,
+            req.requester_id,
+            "رد جديد على طلبك",
+            f"{current_user.full_name or 'مستخدم'} ردّ على طلبك: {req.medicine_name}",
+            type="info",
+        )
+
     session.commit()
     return {"message": "تم إرسال ردك بنجاح"}
 
@@ -165,8 +179,9 @@ def approve_request(
     session: Session = Depends(get_session)
 ):
     from app.models.voucher import Voucher
+    from app.models.notification import create_notification
     import uuid
-    
+
     req = session.get(MedicineRequest, request_id)
     if not req or req.status != "pending":
         raise HTTPException(status_code=400, detail="الطلب غير موجود أو تمت الموافقة عليه مسبقاً")
@@ -197,7 +212,16 @@ def approve_request(
         )
         session.add(voucher)
         message = "تم الموافقة وإصدار كوبون لك."
-        
+
+    # Notify the requester that their request was approved.
+    create_notification(
+        session,
+        req.requester_id,
+        "تمت الموافقة على طلبك ✅",
+        f"{message} ({req.medicine_name})",
+        type="success",
+    )
+
     session.commit()
     return {"message": message}
 

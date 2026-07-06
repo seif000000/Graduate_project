@@ -1,6 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLang } from '../../context/LanguageContext';
+import NotificationBell from '../NotificationBell';
+import BackButton from '../BackButton';
 import { LanguageToggle } from '../LanguageToggle';
 import {
   Building2, Package, TrendingUp, Settings, LogOut,
@@ -35,6 +37,7 @@ const LayoutPharmacy = ({ children }) => {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm relative">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <BackButton className="shrink-0 w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center transition-all border border-slate-100/50 shadow-sm" />
             <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_4px_12px_rgba(14,165,233,0.2)] text-white">
               <Building2 size={20} />
             </div>
@@ -53,9 +56,7 @@ const LayoutPharmacy = ({ children }) => {
 
           <div className="flex items-center gap-4">
             <LanguageToggle className="hidden sm:inline-flex" />
-            <button className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center hover:bg-slate-100 text-slate-500 transition-all border border-slate-100/50 shadow-sm">
-              <Bell size={16} />
-            </button>
+            <NotificationBell className="relative w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center hover:bg-slate-100 text-slate-500 transition-all border border-slate-100/50 shadow-sm" iconSize={16} />
 
             <div className="h-6 w-[1px] bg-slate-200"></div>
 

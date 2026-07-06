@@ -96,8 +96,21 @@ def send_message(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
+    from app.models.notification import create_notification
+
     msg = Message(sender_id=current_user.id, receiver_id=msg_in.receiver_id, text=msg_in.text)
     session.add(msg)
+
+    # Notify the recipient (e.g. a donor contacted about their medicine).
+    if msg_in.receiver_id != current_user.id:
+        create_notification(
+            session,
+            msg_in.receiver_id,
+            "رسالة جديدة 💬",
+            f"لديك رسالة جديدة من {current_user.full_name or 'مستخدم'}",
+            type="info",
+        )
+
     session.commit()
     session.refresh(msg)
     return {

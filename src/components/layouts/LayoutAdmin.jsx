@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useLang } from '../../context/LanguageContext';
+import NotificationBell from '../NotificationBell';
+import BackButton from '../BackButton';
 import { LanguageToggle } from '../LanguageToggle';
 import {
   LayoutDashboard, Users, TrendingUp,
@@ -150,14 +152,12 @@ const LayoutAdmin = ({ children, title }) => {
             >
               <Menu size={20} />
             </button>
+            <BackButton className="shrink-0 w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all border border-white/5" />
             <h2 className="text-base md:text-lg font-black text-white">{title ? t(title) : t('shell.adminPanel')}</h2>
           </div>
           <div className="flex items-center gap-3">
             <LanguageToggle className="hidden sm:inline-flex !bg-slate-800 !border-white/10 !text-slate-300" />
-            <button className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center hover:bg-slate-700 text-slate-300 transition-all relative border border-white/5">
-              <Bell size={17} />
-              <span className="absolute -top-1 -start-1 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white font-black flex items-center justify-center">3</span>
-            </button>
+            <NotificationBell className="relative w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center hover:bg-slate-700 text-slate-300 transition-all border border-white/5" iconSize={17} />
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-500/10 rounded-xl border border-red-500/20">
               <ShieldCheck size={14} className="text-red-400" />
               <span className="text-xs font-black text-red-400 tracking-wider">ROOT ACCESS</span>

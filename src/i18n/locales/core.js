@@ -19,6 +19,7 @@ export const core = {
     'common.all': 'الكل',
     'common.noResults': 'لا توجد نتائج',
     'common.currency': 'ج.م',
+    'common.back': 'رجوع',
 
     // Auth — login
     'auth.welcomeBack': 'مرحباً بعودتك',
@@ -234,6 +235,7 @@ export const core = {
     'common.all': 'All',
     'common.noResults': 'No results',
     'common.currency': 'EGP',
+    'common.back': 'Back',
 
     'auth.welcomeBack': 'Welcome back',
     'auth.loginSubtitle': 'Sign in to continue on Musnad',

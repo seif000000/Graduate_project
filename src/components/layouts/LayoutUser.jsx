@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useLang } from '../../context/LanguageContext';
+import NotificationBell from '../NotificationBell';
+import BackButton from '../BackButton';
 import { LanguageToggle } from '../LanguageToggle';
 import {
   Search, Map as MapIcon, PlusCircle, LayoutDashboard,
@@ -161,6 +163,7 @@ const LayoutUser = ({ children, title }) => {
             >
               <Menu size={20} />
             </button>
+            <BackButton className="shrink-0 w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center transition-all" />
             <h2 className="text-base md:text-lg font-black text-slate-800">{title ? t(title) : t('common.appName')}</h2>
           </div>
           <div className="flex items-center gap-2">
@@ -168,9 +171,7 @@ const LayoutUser = ({ children, title }) => {
             <Link to="/inbox" className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center hover:bg-slate-100 text-slate-500 transition-all">
               <Mail size={17} />
             </Link>
-            <Link to="/notifications" className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center hover:bg-slate-100 text-slate-500 transition-all">
-              <Bell size={17} />
-            </Link>
+            <NotificationBell className="relative w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center hover:bg-slate-100 text-slate-500 transition-all" iconSize={17} />
             <Link to="/profile" className="flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-xl hover:bg-primary-100 transition-all">
               <UserCircle size={16} className="text-primary-600" />
             </Link>
