@@ -50,6 +50,7 @@ import PharmacyInventory from './pages/PharmacyInventory';
 import NearExpiry from './pages/NearExpiry';
 import PharmacyStats from './pages/PharmacyStats';
 import PricingControl from './pages/PricingControl';
+import PharmacyCoupons from './pages/PharmacyCoupons';
 
 import ChatbotGate from './components/ChatbotGate';
 
@@ -186,10 +187,20 @@ function App() {
               <LayoutPharmacy title="routes.pricingControl"><PricingControl /></LayoutPharmacy>
             </ProtectedRoute>
           } />
+          <Route path="/pharmacy/emergency" element={
+            <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
+              <LayoutPharmacy title="routes.emergency"><Emergency /></LayoutPharmacy>
+            </ProtectedRoute>
+          } />
+          <Route path="/pharmacy/coupons" element={
+            <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
+              <LayoutPharmacy title="routes.pharmacyCoupons"><PharmacyCoupons /></LayoutPharmacy>
+            </ProtectedRoute>
+          } />
 
           {/* User app — requires login */}
           <Route path="/search" element={
-            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+            <ProtectedRoute allowedRoles={['user', 'admin']}>
               <LayoutUser title="routes.search"><Search /></LayoutUser>
             </ProtectedRoute>
           } />
@@ -214,12 +225,12 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/emergency" element={
-            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+            <ProtectedRoute allowedRoles={['user', 'admin']}>
               <LayoutUser title="routes.emergency"><Emergency /></LayoutUser>
             </ProtectedRoute>
           } />
           <Route path="/health-ai" element={
-            <ProtectedRoute allowedRoles={['user', 'pharmacy', 'admin']}>
+            <ProtectedRoute allowedRoles={['user', 'admin']}>
               <LayoutUser title="routes.healthAI"><HealthAI /></LayoutUser>
             </ProtectedRoute>
           } />

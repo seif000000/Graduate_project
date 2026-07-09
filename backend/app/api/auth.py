@@ -30,6 +30,21 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
+
+    # When a pharmacy signs up, alert every admin so they can review & verify it.
+    if db_user.role == "pharmacy":
+        from app.models.notification import create_notification
+        admins = session.exec(select(User).where(User.role == "admin")).all()
+        for admin in admins:
+            create_notification(
+                session,
+                admin.id,
+                "صيدلية جديدة بانتظار التوثيق 🏥",
+                f"سجّلت صيدلية «{db_user.full_name}» وتحتاج مراجعة بياناتها وتوثيقها.",
+                type="warning",
+            )
+        session.commit()
+
     return db_user
 
 @router.post("/login")

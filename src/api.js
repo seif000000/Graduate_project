@@ -116,6 +116,8 @@ export const identifyMedicine = (data) => api.post('/chat/identify-medicine', da
 // ─── Vouchers ─────────────────────────────────────────────────────────────
 export const getMyVouchers = () => api.get('/vouchers/me');
 export const redeemVoucher = (voucherId) => api.post(`/vouchers/redeem/${voucherId}`);
+// Pharmacy issues a discount/free coupon to a specific user (by email)
+export const createVoucher = (data) => api.post('/vouchers/', data);
 
 // ─── Medical History ──────────────────────────────────────────────────────
 export const getMedicalReports = () => api.get('/medical-history/reports');

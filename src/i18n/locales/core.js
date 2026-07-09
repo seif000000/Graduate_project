@@ -146,6 +146,8 @@ export const core = {
     'footer.adminTagline': 'مُسند — نظام الإدارة المركزية',
     // Pharmacy shell
     'nav.pharmacyNearExpiry': 'أدوية قرب الانتهاء',
+    'nav.pharmacyEmergency': 'طلبات الاستغاثة',
+    'nav.pharmacyCoupons': 'الكوبونات',
     'shell.pharmacyBrand': 'مُسند الصيدلاني',
     'shell.verified': 'موثق ✓',
     'shell.pharmacy': 'الصيدلية',
@@ -164,6 +166,7 @@ export const core = {
     'routes.nearExpiry': 'الأدوية قرب الانتهاء',
     'routes.pharmacyStats': 'إحصائيات الصيدلية',
     'routes.pricingControl': 'التحكم في الأسعار',
+    'routes.pharmacyCoupons': 'إصدار الكوبونات',
     'routes.search': 'البحث عن دواء',
     'routes.map': 'الخريطة التفاعلية',
     'routes.helpCenter': 'مركز المساعدة',
@@ -376,6 +379,8 @@ export const core = {
     'footer.adminTagline': 'Musnad — Central management system',
     // Pharmacy shell
     'nav.pharmacyNearExpiry': 'Near-expiry medicines',
+    'nav.pharmacyEmergency': 'SOS requests',
+    'nav.pharmacyCoupons': 'Coupons',
     'shell.pharmacyBrand': 'Musnad Pharmacy',
     'shell.verified': 'Verified ✓',
     'shell.pharmacy': 'Pharmacy',
@@ -394,6 +399,7 @@ export const core = {
     'routes.nearExpiry': 'Near-Expiry Medicines',
     'routes.pharmacyStats': 'Pharmacy Statistics',
     'routes.pricingControl': 'Pricing Control',
+    'routes.pharmacyCoupons': 'Issue Coupons',
     'routes.search': 'Find Medicine',
     'routes.map': 'Interactive Map',
     'routes.helpCenter': 'Help Center',

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, MapPin, Clock, Phone, Share2, PlusCircle, ArrowLeft, MessageCircle, Trash2, Send } from 'lucide-react';
-import { getEmergencyBoard, respondToSOS, adminDeleteRequest, createSOSRequest, getApiError } from '../api';
+import { getEmergencyBoard, respondToSOS, adminDeleteRequest, createSOSRequest, sendInboxMessage, getApiError } from '../api';
 import toast from 'react-hot-toast';
 import { getCurrentLocation } from '../utils/geolocation';
 import { formatDate, formatTime } from '../utils/formatDate';
@@ -87,7 +87,19 @@ const Emergency = () => {
       await respondToSOS(requestId, responseMsg[requestId]);
       setResponseMsg({ ...responseMsg, [requestId]: '' });
       fetchSOS(); // Refresh to see new response
-    } catch (e) { 
+    } catch (e) {
+      toast.error(getApiError(e, t('emergency.replyFail')));
+    }
+  };
+
+  const handlePrivate = async (requestId, requesterId) => {
+    const text = responseMsg[requestId];
+    if (!text || !requesterId) return;
+    try {
+      await sendInboxMessage({ receiver_id: requesterId, text });
+      setResponseMsg({ ...responseMsg, [requestId]: '' });
+      toast.success(t('emergency.privateSent'));
+    } catch (e) {
       toast.error(getApiError(e, t('emergency.replyFail')));
     }
   };
@@ -117,13 +129,15 @@ const Emergency = () => {
           </h1>
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">{t('emergency.subtitle')}</p>
         </div>
-        <button
-          onClick={() => setShowSOSForm(true)}
-          className="btn-danger h-16 px-10 rounded-3xl shadow-red-200/50 group"
-        >
-           <AlertCircle className="group-hover:scale-125 transition-transform" />
-           {t('emergency.needNow')}
-        </button>
+        {currentUser.role !== 'pharmacy' && (
+          <button
+            onClick={() => setShowSOSForm(true)}
+            className="btn-danger h-16 px-10 rounded-3xl shadow-red-200/50 group"
+          >
+             <AlertCircle className="group-hover:scale-125 transition-transform" />
+             {t('emergency.needNow')}
+          </button>
+        )}
       </header>
 
       {/* SOS Form Modal */}
@@ -305,21 +319,42 @@ const Emergency = () => {
 
                         {/* Reply Input */}
                         {currentUser && (
-                          <div className="relative">
-                            <input 
-                              type="text"
-                              value={responseMsg[req.id] || ''}
-                              onChange={(e) => setResponseMsg({ ...responseMsg, [req.id]: e.target.value })}
-                              placeholder={t('emergency.replyPlaceholder')}
-                              className="w-full bg-white border border-slate-200 h-14 ps-6 pe-16 rounded-2xl outline-none focus:border-primary-500 transition-all font-bold text-sm shadow-inner"
-                              onKeyPress={(e) => e.key === 'Enter' && handleResponse(req.id)}
-                            />
-                            <button
-                              onClick={() => handleResponse(req.id)}
-                              className="absolute start-2 top-2 w-10 h-10 bg-primary-500 text-white rounded-xl flex items-center justify-center hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/30"
-                            >
-                              <Send size={18} />
-                            </button>
+                          <div className="space-y-3">
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={responseMsg[req.id] || ''}
+                                onChange={(e) => setResponseMsg({ ...responseMsg, [req.id]: e.target.value })}
+                                placeholder={t('emergency.replyPlaceholder')}
+                                className="w-full bg-white border border-slate-200 h-14 ps-6 pe-16 rounded-2xl outline-none focus:border-primary-500 transition-all font-bold text-sm shadow-inner"
+                                onKeyPress={(e) => e.key === 'Enter' && handleResponse(req.id)}
+                              />
+                              <button
+                                onClick={() => handleResponse(req.id)}
+                                title={t('emergency.replyPublic')}
+                                className="absolute start-2 top-2 w-10 h-10 bg-primary-500 text-white rounded-xl flex items-center justify-center hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/30"
+                              >
+                                <Send size={18} />
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <button
+                                onClick={() => handleResponse(req.id)}
+                                className="btn-primary h-11 px-5 text-xs gap-2"
+                              >
+                                <MessageCircle size={15} />
+                                {t('emergency.replyPublic')}
+                              </button>
+                              {req.requester_id && req.requester_id !== currentUser.id && (
+                                <button
+                                  onClick={() => handlePrivate(req.id, req.requester_id)}
+                                  className="btn-secondary h-11 px-5 text-xs gap-2"
+                                >
+                                  <Send size={15} />
+                                  {t('emergency.replyPrivate')}
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>

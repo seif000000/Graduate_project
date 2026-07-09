@@ -6,12 +6,14 @@ import BackButton from '../BackButton';
 import { LanguageToggle } from '../LanguageToggle';
 import {
   Building2, Package, TrendingUp, Settings, LogOut,
-  Clock, Bell, ShieldCheck
+  Clock, Bell, ShieldCheck, Siren, Ticket
 } from 'lucide-react';
 
 const pharmacyNav = [
   { labelKey: 'nav.pharmacyInventory', icon: Package, path: '/pharmacy/inventory' },
   { labelKey: 'nav.pharmacyNearExpiry', icon: Clock, path: '/pharmacy/near-expiry' },
+  { labelKey: 'nav.pharmacyEmergency', icon: Siren, path: '/pharmacy/emergency' },
+  { labelKey: 'nav.pharmacyCoupons', icon: Ticket, path: '/pharmacy/coupons' },
   { labelKey: 'nav.pharmacyStats', icon: TrendingUp, path: '/pharmacy/stats' },
   { labelKey: 'nav.pricing', icon: Settings, path: '/pharmacy/pricing' },
 ];
