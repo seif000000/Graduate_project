@@ -153,6 +153,19 @@ export const core = {
     'shell.pharmacy': 'الصيدلية',
     'role.pharmacyPortal': 'بوابة الشريك 🏥',
     'footer.pharmacyTagline': 'بوابة الشراكة الطبية لمنصة مسند — نسير معاً نحو غدٍ أفضل',
+    // Pharmacy verification gate
+    'pharmacyPending.title': 'حسابك قيد المراجعة',
+    'pharmacyPending.desc': 'شكراً لتسجيلك كصيدلية شريكة. يراجع فريق الإدارة بياناتك الآن للتأكد منها. بمجرد توثيق حسابك ستتمكن من الدخول إلى بوابة الصيدلية والوصول لكل الميزات.',
+    'pharmacyPending.name': 'اسم الصيدلية',
+    'pharmacyPending.license': 'رقم الترخيص',
+    'pharmacyPending.address': 'العنوان',
+    'pharmacyPending.checkStatus': 'تحديث حالة التوثيق',
+    'pharmacyPending.checking': 'جارٍ التحقق...',
+    'pharmacyPending.logout': 'تسجيل الخروج',
+    'pharmacyPending.hint': 'لن تتمكن من استخدام المنصة حتى يوثّق المدير حسابك، وسيصلك إشعار فور الموافقة.',
+    'pharmacyPending.approved': 'تم توثيق حسابك! جارٍ تحويلك...',
+    'pharmacyPending.stillPending': 'حسابك ما زال قيد المراجعة',
+    'pharmacyPending.checkFail': 'تعذّر التحقق من الحالة',
 
     // Route header titles (App.jsx -> layout top bar)
     'routes.adminDashboard': 'لوحة التحكم',
@@ -386,6 +399,19 @@ export const core = {
     'shell.pharmacy': 'Pharmacy',
     'role.pharmacyPortal': 'Partner portal 🏥',
     'footer.pharmacyTagline': "Musnad's medical partnership portal — together toward a better tomorrow",
+    // Pharmacy verification gate
+    'pharmacyPending.title': 'Your account is under review',
+    'pharmacyPending.desc': 'Thanks for registering as a partner pharmacy. Our team is reviewing your details to verify them. Once your account is approved you will be able to enter the pharmacy portal and access all features.',
+    'pharmacyPending.name': 'Pharmacy name',
+    'pharmacyPending.license': 'License number',
+    'pharmacyPending.address': 'Address',
+    'pharmacyPending.checkStatus': 'Refresh verification status',
+    'pharmacyPending.checking': 'Checking...',
+    'pharmacyPending.logout': 'Log out',
+    'pharmacyPending.hint': "You can't use the platform until an admin verifies your account. You'll be notified as soon as it's approved.",
+    'pharmacyPending.approved': 'Your account has been verified! Redirecting...',
+    'pharmacyPending.stillPending': 'Your account is still under review',
+    'pharmacyPending.checkFail': 'Could not check the status',
 
     // Route header titles (App.jsx -> layout top bar)
     'routes.adminDashboard': 'Dashboard',

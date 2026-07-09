@@ -107,7 +107,7 @@ const PharmacyInventory = () => {
       <header className="flex flex-wrap items-center justify-between gap-6">
         <div className="space-y-2 text-start">
           <h1 className="text-4xl font-black text-slate-800 flex items-center gap-4">
-             <Building2 className="text-primary-600" size={40} />
+             <Building2 className="text-cyan-600" size={40} />
              {t('inventory.title')}
           </h1>
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">{t('inventory.subtitle')}</p>
@@ -115,7 +115,7 @@ const PharmacyInventory = () => {
         <div className="flex gap-4">
             <button
               onClick={openAddForm}
-              className="btn-primary h-14 px-8 shadow-primary-600/20 gap-3 bg-slate-900 border-slate-900"
+              className="btn-pharmacy h-14 px-8 shadow-cyan-600/20 gap-3 bg-slate-900 border-slate-900"
             >
                <Plus size={20} />
                {t('inventory.addBtn')}
@@ -151,7 +151,7 @@ const PharmacyInventory = () => {
               placeholder={t('inventory.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-12 bg-slate-50 border border-slate-100 ps-12 pe-6 rounded-2xl outline-none focus:border-primary-500 transition-all font-bold text-slate-700 text-sm"
+              className="w-full h-12 bg-slate-50 border border-slate-100 ps-12 pe-6 rounded-2xl outline-none focus:border-cyan-500 transition-all font-bold text-slate-700 text-sm"
             />
          </div>
          <div className="flex gap-3 items-center">
@@ -159,7 +159,7 @@ const PharmacyInventory = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="h-12 px-6 rounded-2xl border border-slate-100 bg-white text-slate-600 font-bold text-xs outline-none focus:border-primary-500 transition-all cursor-pointer"
+              className="h-12 px-6 rounded-2xl border border-slate-100 bg-white text-slate-600 font-bold text-xs outline-none focus:border-cyan-500 transition-all cursor-pointer"
             >
                <option value="all">{t('inventory.filterAll')}</option>
                <option value="good">{t('inventory.filterGood')}</option>
@@ -172,7 +172,7 @@ const PharmacyInventory = () => {
       <div className="bg-white/70 backdrop-blur-md shadow-[0_8px_30px_rgba(14,165,233,0.05)] rounded-3xl border border-white overflow-hidden">
          {loading ? (
             <div className="p-20 text-center flex flex-col items-center gap-4">
-               <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+               <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
                <p className="text-slate-400 font-bold">{t('inventory.loading')}</p>
             </div>
          ) : filteredInventory.length === 0 ? (
@@ -182,7 +182,7 @@ const PharmacyInventory = () => {
                   <h4 className="text-lg font-black text-slate-800">{t('inventory.emptyTitle')}</h4>
                   <p className="text-sm text-slate-400 font-bold">{t('inventory.emptySubtitle')}</p>
                </div>
-               <button onClick={openAddForm} className="btn-primary h-12 px-8 inline-flex">{t('inventory.addFirst')}</button>
+               <button onClick={openAddForm} className="btn-pharmacy h-12 px-8 inline-flex">{t('inventory.addFirst')}</button>
             </div>
          ) : (
             <div className="overflow-x-auto">
@@ -219,7 +219,7 @@ const PharmacyInventory = () => {
                            </td>
                            <td className="p-6">
                               <div className="flex items-center justify-center gap-2">
-                                 <button onClick={() => openEditForm(item)} className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-primary-600 hover:border-primary-200 transition-all flex items-center justify-center shadow-sm"><Edit size={16} /></button>
+                                 <button onClick={() => openEditForm(item)} className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-cyan-600 hover:border-cyan-200 transition-all flex items-center justify-center shadow-sm"><Edit size={16} /></button>
                                  <button 
                                    onClick={() => setConfirmDelete(item.id)}
                                    className="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-red-600 hover:border-red-200 transition-all flex items-center justify-center shadow-sm"
@@ -260,7 +260,7 @@ const PharmacyInventory = () => {
                          type="text"
                          value={newMedicine.medicine_name}
                          onChange={(e) => setNewMedicine({...newMedicine, medicine_name: e.target.value})}
-                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-cyan-500 font-bold"
                          placeholder={t('inventory.phTradeName')}
                        />
                     </div>
@@ -270,7 +270,7 @@ const PharmacyInventory = () => {
                          type="text"
                          value={newMedicine.generic_name}
                          onChange={(e) => setNewMedicine({...newMedicine, generic_name: e.target.value})}
-                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-cyan-500 font-bold"
                          placeholder="Paracetamol"
                        />
                     </div>
@@ -281,7 +281,7 @@ const PharmacyInventory = () => {
                          type="text"
                          value={newMedicine.quantity}
                          onChange={(e) => setNewMedicine({...newMedicine, quantity: e.target.value})}
-                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-cyan-500 font-bold"
                          placeholder={t('inventory.phQuantity')}
                        />
                     </div>
@@ -292,7 +292,7 @@ const PharmacyInventory = () => {
                          type="text" 
                          value={newMedicine.expiry_date}
                          onChange={(e) => setNewMedicine({...newMedicine, expiry_date: e.target.value})}
-                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-cyan-500 font-bold"
                          placeholder="12/2025"
                        />
                     </div>
@@ -302,7 +302,7 @@ const PharmacyInventory = () => {
                          type="text"
                          value={newMedicine.price}
                          onChange={(e) => setNewMedicine({...newMedicine, price: e.target.value})}
-                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-cyan-500 font-bold"
                        />
                     </div>
                     <div className="space-y-1 col-span-2">
@@ -311,13 +311,13 @@ const PharmacyInventory = () => {
                          type="text"
                          value={newMedicine.batch_info}
                          onChange={(e) => setNewMedicine({...newMedicine, batch_info: e.target.value})}
-                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-primary-500 font-bold"
+                         className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-cyan-500 font-bold"
                          placeholder={t('inventory.phBatch')}
                        />
                     </div>
                  </div>
                  <div className="pt-6">
-                    <button type="submit" className="w-full h-14 bg-primary-600 text-white font-black rounded-2xl shadow-lg shadow-primary-500/30 hover:bg-primary-700 transition-all">{editingId ? t('inventory.saveEdits') : t('inventory.confirmAdd')}</button>
+                    <button type="submit" className="w-full h-14 bg-cyan-600 text-white font-black rounded-2xl shadow-lg shadow-cyan-500/30 hover:bg-cyan-700 transition-all">{editingId ? t('inventory.saveEdits') : t('inventory.confirmAdd')}</button>
                  </div>
               </form>
            </motion.div>

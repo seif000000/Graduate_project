@@ -47,7 +47,7 @@ const PharmacyStats = () => {
   }, []);
 
   const stats = [
-    { label: t('stats.dispensed'), value: data?.total_dispensed || '0', icon: Pill, color: 'text-primary-600', bg: 'bg-primary-50' },
+    { label: t('stats.dispensed'), value: data?.total_dispensed || '0', icon: Pill, color: 'text-cyan-600', bg: 'bg-cyan-50' },
     { label: t('stats.available'), value: data?.total_available || '0', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: t('stats.totalItems'), value: data?.total_items || '0', icon: Award, color: 'text-amber-600', bg: 'bg-amber-50' },
     { label: t('stats.completionRate'), value: `${data?.completion_rate || '0'}%`, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },

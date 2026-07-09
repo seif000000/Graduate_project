@@ -80,7 +80,7 @@ const NearExpiry = () => {
 
       {loading ? (
         <div className="h-64 flex items-center justify-center">
-          <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : medicines.length === 0 ? (
         <div className="glass-card p-16 text-center text-slate-400 font-bold space-y-4">
@@ -106,7 +106,7 @@ const NearExpiry = () => {
 
                    <div className="text-start space-y-1">
                       <h4 className="text-xl font-black text-slate-800">{med.medicine_name}</h4>
-                      <p className="text-xs font-bold text-slate-400 underline decoration-primary-200">{med.generic_name}</p>
+                      <p className="text-xs font-bold text-slate-400 underline decoration-cyan-200">{med.generic_name}</p>
                    </div>
 
                    <div className="flex gap-4 pt-4 border-t border-slate-50">
@@ -127,7 +127,7 @@ const NearExpiry = () => {
                 <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
                    <button
                       onClick={() => navigate('/emergency')}
-                      className="flex-grow h-12 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-all flex items-center justify-center gap-2"
+                      className="flex-grow h-12 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-cyan-50 hover:border-cyan-200 hover:text-cyan-700 transition-all flex items-center justify-center gap-2"
                    >
                       <MessageCircle size={16} />
                       {t('nearExpiry.viewRequests')}

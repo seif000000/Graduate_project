@@ -10,7 +10,7 @@ import { useLang } from '../context/LanguageContext';
  * - children: React.ReactNode
  */
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, role, isLoading, user } = useAuth();
   const { t } = useLang();
   const location = useLocation();
 
@@ -29,6 +29,13 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   // Not logged in → go to login
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // A pharmacy that hasn't been verified by an admin cannot use the platform yet.
+  // It is held on the standalone "pending" gate until its data is approved —
+  // checked before the role check so it never lands on a 403 page.
+  if (role === 'pharmacy' && user?.is_verified === false && location.pathname !== '/pharmacy/pending') {
+    return <Navigate to="/pharmacy/pending" replace />;
   }
 
   // Role check: if allowedRoles defined, verify access

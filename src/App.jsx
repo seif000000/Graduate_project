@@ -51,6 +51,7 @@ import NearExpiry from './pages/NearExpiry';
 import PharmacyStats from './pages/PharmacyStats';
 import PricingControl from './pages/PricingControl';
 import PharmacyCoupons from './pages/PharmacyCoupons';
+import PharmacyPending from './pages/PharmacyPending';
 
 import ChatbotGate from './components/ChatbotGate';
 
@@ -163,6 +164,13 @@ function App() {
           <Route path="/admin/settings" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <LayoutAdmin title="routes.settings"><AdminSettings /></LayoutAdmin>
+            </ProtectedRoute>
+          } />
+
+          {/* Pharmacy — verification gate (standalone, no portal nav) */}
+          <Route path="/pharmacy/pending" element={
+            <ProtectedRoute allowedRoles={['pharmacy']}>
+              <PharmacyPending />
             </ProtectedRoute>
           } />
 
