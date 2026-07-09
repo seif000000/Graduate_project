@@ -23,7 +23,8 @@ const PharmacyInventory = () => {
     quantity: '',
     expiry_date: '',
     batch_info: '',
-    price: 'متوفر'
+    price: 'متوفر',
+    is_near_expiry: false
   };
   const [newMedicine, setNewMedicine] = useState(emptyMedicine);
 
@@ -42,6 +43,7 @@ const PharmacyInventory = () => {
       expiry_date: item.expiry_date || '',
       batch_info: item.batch_info || '',
       price: item.price || 'متوفر',
+      is_near_expiry: item.is_near_expiry || false,
     });
     setShowAddForm(true);
   };
@@ -72,6 +74,19 @@ const PharmacyInventory = () => {
     }
   };
 
+
+  // Flip a medicine between "good" and "near-expiry" straight from the table.
+  const toggleNearExpiry = async (item) => {
+    const next = !item.is_near_expiry;
+    setInventory(prev => prev.map(i => i.id === item.id ? { ...i, is_near_expiry: next } : i));
+    try {
+      await updatePharmacyInventory(item.id, { is_near_expiry: next });
+      toast.success(next ? t('inventory.markedNear') : t('inventory.markedGood'));
+    } catch (e) {
+      setInventory(prev => prev.map(i => i.id === item.id ? { ...i, is_near_expiry: item.is_near_expiry } : i));
+      toast.error(getApiError(e, t('inventory.updateError')));
+    }
+  };
 
   const handleSubmitMedicine = async (e) => {
     e.preventDefault();
@@ -213,9 +228,13 @@ const PharmacyInventory = () => {
                            <td className="p-6 font-black text-slate-800">{item.quantity}</td>
                            <td className="p-6 font-bold text-slate-500 text-sm">{item.expiry_date}</td>
                            <td className="p-6">
-                              <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${item.is_near_expiry ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              <button
+                                onClick={() => toggleNearExpiry(item)}
+                                title={t('inventory.toggleStatusHint')}
+                                className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:ring-2 hover:ring-offset-1 cursor-pointer ${item.is_near_expiry ? 'bg-amber-100 text-amber-700 hover:ring-amber-300' : 'bg-emerald-100 text-emerald-700 hover:ring-emerald-300'}`}
+                              >
                                  {item.is_near_expiry ? t('inventory.statusNear') : t('inventory.statusGood')}
-                              </span>
+                              </button>
                            </td>
                            <td className="p-6">
                               <div className="flex items-center justify-center gap-2">
@@ -304,6 +323,25 @@ const PharmacyInventory = () => {
                          onChange={(e) => setNewMedicine({...newMedicine, price: e.target.value})}
                          className="w-full h-12 bg-slate-50 border border-slate-100 px-4 rounded-xl outline-none focus:border-cyan-500 font-bold"
                        />
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ms-2">{t('inventory.labelStatus')}</label>
+                       <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setNewMedicine({ ...newMedicine, is_near_expiry: false })}
+                            className={`flex-1 h-12 rounded-xl font-black text-sm transition-all border ${!newMedicine.is_near_expiry ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-emerald-200'}`}
+                          >
+                             ✓ {t('inventory.statusGood')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setNewMedicine({ ...newMedicine, is_near_expiry: true })}
+                            className={`flex-1 h-12 rounded-xl font-black text-sm transition-all border ${newMedicine.is_near_expiry ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-amber-200'}`}
+                          >
+                             ⚠ {t('inventory.statusNear')}
+                          </button>
+                       </div>
                     </div>
                     <div className="space-y-1 col-span-2">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ms-2">{t('inventory.labelBatch')}</label>

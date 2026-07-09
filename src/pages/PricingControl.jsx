@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Save, Search, Pill, Tag, Percent, AlertCircle } from 'lucide-react';
+import { Save, Search, Tag, Percent, AlertCircle } from 'lucide-react';
 import { getPharmacyInventory, updatePharmacyInventory, getApiError } from '../api';
 import { useLang } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
@@ -10,6 +10,8 @@ const PricingControl = () => {
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [defaultDiscount, setDefaultDiscount] = useState(25);
+  const [applyingAll, setApplyingAll] = useState(false);
 
   const fetchInventory = async () => {
     try {
@@ -39,23 +41,61 @@ const PricingControl = () => {
     toast.success(t('pricing.saveSuccess'));
   };
 
-  const handleUpdateItem = async (id, field, value) => {
-    const original = [...medicines];
-    const updatedList = medicines.map(m => m.id === id ? { ...m, [field]: value } : m);
-    setMedicines(updatedList);
+  // Update a field locally while typing (no request per keystroke).
+  const setItemLocal = (id, field, value) => {
+    setMedicines(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
+  };
 
-    const payload = {};
-    if (field === 'discount') {
-        payload.discount_percentage = Number(value);
-        payload.type = Number(value) === 100 ? 'مجاني' : 'خصم';
-    }
-    if (field === 'basePrice') payload.base_price = Number(value);
-
+  // Persist a single item's price + discount to the server (on blur).
+  const persistPricing = async (id) => {
+    const med = medicines.find(m => m.id === id);
+    if (!med) return;
+    const discount = Number(med.discount) || 0;
     try {
-      await updatePharmacyInventory(id, payload);
+      await updatePharmacyInventory(id, {
+        base_price: Number(med.basePrice) || 0,
+        discount_percentage: discount,
+        type: discount === 100 ? 'مجاني' : 'خصم',
+      });
+      toast.success(t('pricing.itemSaved'));
     } catch (e) {
       toast.error(getApiError(e, t('pricing.updateError')));
-      setMedicines(original);
+    }
+  };
+
+  // Toggle a medicine between a free donation and a paid discount.
+  const toggleFree = async (med) => {
+    const makeFree = med.type !== 'free';
+    const discount = makeFree ? 100 : 0;
+    setMedicines(prev => prev.map(m => m.id === med.id
+      ? { ...m, type: makeFree ? 'free' : 'discount', discount } : m));
+    try {
+      await updatePharmacyInventory(med.id, {
+        discount_percentage: discount,
+        type: makeFree ? 'مجاني' : 'خصم',
+      });
+      toast.success(makeFree ? t('pricing.nowFree') : t('pricing.nowDiscount'));
+    } catch (e) {
+      toast.error(getApiError(e, t('pricing.updateError')));
+    }
+  };
+
+  // Apply the default discount to every medicine at once.
+  const applyToAll = async () => {
+    if (applyingAll || medicines.length === 0) return;
+    setApplyingAll(true);
+    const d = Math.min(100, Math.max(0, Number(defaultDiscount) || 0));
+    try {
+      await Promise.all(medicines.map(m => updatePharmacyInventory(m.id, {
+        discount_percentage: d,
+        type: d === 100 ? 'مجاني' : 'خصم',
+      })));
+      setMedicines(prev => prev.map(m => ({ ...m, discount: d, type: d === 100 ? 'free' : 'discount' })));
+      toast.success(t('pricing.applyDone'));
+    } catch (e) {
+      toast.error(getApiError(e, t('pricing.updateError')));
+    } finally {
+      setApplyingAll(false);
     }
   };
 
@@ -89,9 +129,23 @@ const PricingControl = () => {
               </h3>
               <p className="text-xs text-cyan-300/70 font-medium leading-relaxed">{t('pricing.defaultDiscountBody')}</p>
               <div className="flex items-center gap-4 mt-4">
-                 <input type="number" defaultValue="25" className="w-24 bg-white/10 border border-white/20 h-14 rounded-2xl text-center text-xl font-black outline-none focus:bg-white/20 transition-all" />
+                 <input
+                   type="number"
+                   min="0"
+                   max="100"
+                   value={defaultDiscount}
+                   onChange={(e) => setDefaultDiscount(e.target.value)}
+                   className="w-24 bg-white/10 border border-white/20 h-14 rounded-2xl text-center text-xl font-black outline-none focus:bg-white/20 transition-all"
+                 />
                  <span className="text-2xl font-black">%</span>
               </div>
+              <button
+                onClick={applyToAll}
+                disabled={applyingAll || medicines.length === 0}
+                className="mt-2 h-11 px-5 rounded-xl bg-cyan-500 text-white font-black text-xs hover:bg-cyan-400 transition-all disabled:opacity-40 flex items-center gap-2"
+              >
+                 {applyingAll ? t('pricing.applying') : t('pricing.applyToAll')}
+              </button>
            </div>
            
            <div className="lg:col-span-2 p-6 rounded-[2rem] bg-white/5 border border-white/10">
@@ -147,7 +201,8 @@ const PricingControl = () => {
                         <input
                           type="number"
                           value={med.basePrice}
-                          onChange={(e) => handleUpdateItem(med.id, 'basePrice', e.target.value)}
+                          onChange={(e) => setItemLocal(med.id, 'basePrice', e.target.value)}
+                          onBlur={() => persistPricing(med.id)}
                           className="w-20 h-10 bg-slate-50 border border-slate-200 rounded-lg text-center font-black text-slate-700 outline-none focus:border-cyan-500"
                         />
                         <span className="text-sm font-bold text-slate-400">{t('pricing.currency')}</span>
@@ -157,11 +212,12 @@ const PricingControl = () => {
                     <div className="text-start">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('pricing.discount')}</p>
                       <div className="flex items-center gap-2">
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           value={med.discount}
-                          onChange={(e) => handleUpdateItem(med.id, 'discount', e.target.value)}
-                          className="w-16 h-10 bg-slate-50 border border-slate-200 rounded-lg text-center font-black text-cyan-600 outline-none focus:border-cyan-500" 
+                          onChange={(e) => setItemLocal(med.id, 'discount', e.target.value)}
+                          onBlur={() => persistPricing(med.id)}
+                          className="w-16 h-10 bg-slate-50 border border-slate-200 rounded-lg text-center font-black text-cyan-600 outline-none focus:border-cyan-500"
                         />
                         <span className="text-sm font-bold text-slate-400">%</span>
                       </div>
@@ -176,10 +232,11 @@ const PricingControl = () => {
                 </div>
 
                 <div className="flex gap-2">
-                   <button className="h-10 px-4 rounded-xl bg-slate-50 text-slate-400 hover:text-cyan-500 transition-all">
-                      <Settings size={18} />
-                   </button>
-                   <button className={`h-10 px-6 rounded-xl font-bold text-xs transition-all ${med.type === 'free' ? 'bg-emerald-500 text-white' : 'bg-cyan-50 text-cyan-600 border border-cyan-100'}`}>
+                   <button
+                     onClick={() => toggleFree(med)}
+                     title={t('pricing.toggleTypeHint')}
+                     className={`h-10 px-6 rounded-xl font-bold text-xs transition-all hover:opacity-90 cursor-pointer ${med.type === 'free' ? 'bg-emerald-500 text-white' : 'bg-cyan-50 text-cyan-600 border border-cyan-100'}`}
+                   >
                       {med.type === 'free' ? t('pricing.donationOffer') : t('pricing.partialDiscount')}
                    </button>
                 </div>
